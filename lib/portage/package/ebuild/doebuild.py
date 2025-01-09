@@ -1218,15 +1218,6 @@ def doebuild(
             if mystatus:
                 return mystatus
 
-            # Support for home-dir-template-copy FEATURE:
-            print("JRG: Experimental home-dir-template-copy code...")
-            if "home-dir-template-copy" in emerge_config.target_config.settings.features:
-                print("JRG: Feature test successfull!")
-                home_template_dir = pwd.getpwnam(env["PORTAGE_USERNAME"]).pw_dir
-                print(f"JRG:     Template home directory is          {home_template_directory}")
-                print(f"JRG:     Build environment home directory is {mysettings["HOME"]}")
-                print(f"JRG:     No action yet. Just ensuring that I've identified the directories.")
-
             have_build_dirs = True
 
             # emerge handles logging externally

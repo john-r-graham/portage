@@ -133,6 +133,14 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
         # Avoid spurious permissions adjustments when fetching with
         # a temporary PORTAGE_TMPDIR setting (for fetchonly).
         _prepare_features_dirs(mysettings)
+        # Support for home-dir-template-copy FEATURE:
+        print("JRG: Experimental home-dir-template-copy code...")
+        if "home-dir-template-copy" in emerge_config.target_config.settings.features:
+            print("JRG: Feature test successfull!")
+            home_template_dir = pwd.getpwnam(env["PORTAGE_USERNAME"]).pw_dir
+            print(f"JRG:     Template home directory is          {home_template_directory}")
+            print(f"JRG:     Build environment home directory is {mysettings["HOME"]}")
+            print(f"JRG:     No action yet. Just ensuring that I've identified the directories.")
 
 
 def _adjust_perms_msg(settings, msg):
