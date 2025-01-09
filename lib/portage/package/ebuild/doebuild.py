@@ -1218,6 +1218,7 @@ def doebuild(
                 return mystatus
 
             # Support for home-dir-template-copy FEATURE:
+            print("JRG: Experimental home-dir-template-copy code...")
             writemsg_level("JRG: Experimental home-dir-template-copy code...\n", level=logging.WARN)
             if "home-dir-template-copy" in emerge_config.target_config.settings.features:
                 writemsg_level("JRG: Feature test successfull!\n", level=logging.WARN)
