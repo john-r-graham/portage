@@ -23,6 +23,7 @@ class EbuildExecuter(CompositeTask):
         settings = self.settings
         cleanup = 0
         portage.prepare_build_dirs(pkg.root, settings, cleanup)
+        writemsg_level("JRG: Breadcrumb 1: EbuildExecuter.py\n", level=logging.WARN)
 
         if eapi_exports_replace_vars(settings["EAPI"]):
             vardb = pkg.root_config.trees["vartree"].dbapi

@@ -76,6 +76,7 @@ class PackageUninstall(CompositeTask):
 
         lock_task.future.result()
         portage.prepare_build_dirs(settings=self.settings, cleanup=True)
+        writemsg_level("JRG: Breadcrumb 1: PackageUninstall.py\n", level=logging.WARN)
 
         # Output only gets logged if it comes after prepare_build_dirs()
         # which initializes PORTAGE_LOG_FILE.

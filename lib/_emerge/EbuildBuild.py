@@ -272,6 +272,7 @@ class EbuildBuild(CompositeTask):
 
         # for log handling
         portage.prepare_build_dirs(self.pkg.root, self.settings, 1)
+        writemsg_level("JRG: Breadcrumb 1: EbuildBuild.py\n", level=logging.WARN)
 
         fetcher = EbuildFetcher(
             config_pool=self.config_pool,

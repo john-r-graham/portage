@@ -1214,6 +1214,7 @@ def doebuild(
                 )
                 builddir_lock.scheduler.run_until_complete(builddir_lock.async_lock())
             mystatus = prepare_build_dirs(myroot, mysettings, cleanup)
+            writemsg_level("JRG: Breadcrumb 1: doebuild.py\n", level=logging.WARN)
             if mystatus:
                 return mystatus
 
