@@ -1213,20 +1213,19 @@ def doebuild(
                     scheduler=asyncio._safe_loop(), settings=mysettings
                 )
                 builddir_lock.scheduler.run_until_complete(builddir_lock.async_lock())
+            print("JRG: Breadcrumb 1: doebuild.py")
             mystatus = prepare_build_dirs(myroot, mysettings, cleanup)
-            writemsg_level("JRG: Breadcrumb 1: doebuild.py\n", level=logging.WARN)
             if mystatus:
                 return mystatus
 
             # Support for home-dir-template-copy FEATURE:
             print("JRG: Experimental home-dir-template-copy code...")
-            writemsg_level("JRG: Experimental home-dir-template-copy code...\n", level=logging.WARN)
             if "home-dir-template-copy" in emerge_config.target_config.settings.features:
-                writemsg_level("JRG: Feature test successfull!\n", level=logging.WARN)
+                print("JRG: Feature test successfull!")
                 home_template_dir = pwd.getpwnam(env["PORTAGE_USERNAME"]).pw_dir
-                writemsg_level(f"JRG:     Template home directory is          {home_template_directory}\n", level=logging.WARN)
-                writemsg_level(f"JRG:     Build environment home directory is {mysettings["HOME"]}\n", level=logging.WARN)
-                writemsg_level(f"JRG:     No action yet. Just ensuring that I've identified the directories.\n", level=logging.WARN)
+                print(f"JRG:     Template home directory is          {home_template_directory}")
+                print(f"JRG:     Build environment home directory is {mysettings["HOME"]}")
+                print(f"JRG:     No action yet. Just ensuring that I've identified the directories.")
 
             have_build_dirs = True
 

@@ -2407,7 +2407,7 @@ class dblink:
                 )
                 scheduler.run_until_complete(builddir_lock.async_lock())
                 prepare_build_dirs(settings=self.settings, cleanup=True)
-                writemsg_level("JRG: Breadcrumb 1: vartree.py\n", level=logging.WARN)
+                print("JRG: Breadcrumb 1: vartree.py")
                 log_path = self.settings.get("PORTAGE_LOG_FILE")
 
             # Do this before the following _prune_plib_registry call, since
