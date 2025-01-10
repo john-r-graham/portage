@@ -29,7 +29,8 @@ from portage.util import (
     writemsg,
 )
 from portage.util.install_mask import _raise_exc
-
+from portage.elog.messages import einfo
+from _emerge.emergelog import emergelog
 
 def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
     """
@@ -136,27 +137,27 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
         _prepare_features_dirs(mysettings)
         # Support for home-dir-template-copy FEATURE:
         if not cleanup and "home-dir-template-copy" in settings.features:
-            print("JRG: Experimental home-dir-template-copy code...")
+            _best_effort_log(mysettings, f"JRG: Experimental home-dir-template-copy code, called from {mysettings.get("EBUILD_PHASE", "None")} phase...")
             portage_username = mysettings.get("PORTAGE_USERNAME", "")
             username_defaulted=""
             if portage_username == "":
                 portage_username = "portage"
                 username_defaulted = " (defaulted)"
-            print(f"JRG:     Portage user name is                {portage_username}{username_defaulted}")
+            _best_effort_log(mysettings, f"JRG:     Portage user name is                {portage_username}{username_defaulted}")
             home_template_dir = pwd.getpwnam(portage_username).pw_dir
-            print(f"JRG:     Template home directory is          {home_template_dir}")
+            _best_effort_log(mysettings, f"JRG:     Template home directory is          {home_template_dir}")
             build_env_home_dir = mysettings["HOME"]
-            print(f"JRG:     Build environment home directory is {build_env_home_dir}")
+            _best_effort_log(mysettings, f"JRG:     Build environment home directory is {build_env_home_dir}")
             # Sanity checks on above values.
             if not os.path.exists(home_template_dir):
-                writemsg(f"FEATURES home-dir-template-copy enabled but specified Linux home directory {home_template_dir} does not exist.\n", noiselevel=-1)
+                _best_effort_log(mysettings, f"FEATURES home-dir-template-copy enabled but specified Linux home directory {home_template_dir} does not exist.")
                 return 1
             if not os.path.exists(build_env_home_dir):
-                writemsg(f"FEATURES home-dir-template-copy enabled but build HOME directory {build_env_home_dir} does not exist.\n", noiselevel=-1)
+                _best_effort_log(mysettings, f"FEATURES home-dir-template-copy enabled but build HOME directory {build_env_home_dir} does not exist.")
                 return 1
-            print("JRG: Copying template home directory to build HOME directory...")
+            _best_effort_log(mysettings, "JRG: Copying template home directory to build HOME directory...")
             shutil.copytree(home_template_dir, build_env_home_dir, symlinks=True, dirs_exist_ok=True)
-            print("JRG: Copying template home directory to build HOME directory complete!")
+            _best_effort_log(mysettings, "JRG: Copying template home directory to build HOME directory complete!")
 
 
 def _adjust_perms_msg(settings, msg):
@@ -549,3 +550,10 @@ def _prepare_fake_distdir(settings, alist):
             if link_target != target:
                 os.unlink(symlink_path)
                 os.symlink(target, symlink_path)
+
+
+def _best_effort_log(settings, msg):
+    phase = settings.get("EBUILD_PHASE", "None")
+    xterm_titles = "notitles" not in settings.features
+    einfo(msg, phase)
+    emergelog(xterm_titles, " * {}".format(msg))
