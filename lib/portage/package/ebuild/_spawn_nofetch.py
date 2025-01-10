@@ -90,7 +90,6 @@ class SpawnNofetchWithoutBuilddir(CompositeTask):
             return
 
         prepare_build_dirs(settings=settings)
-        writemsg_level("JRG: Breadcrumb 1: _spawn_nofetch.py\n", level=logging.WARN)
 
         ebuild_phase = EbuildPhase(
             background=self.background,

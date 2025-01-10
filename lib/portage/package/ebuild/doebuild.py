@@ -1213,7 +1213,6 @@ def doebuild(
                     scheduler=asyncio._safe_loop(), settings=mysettings
                 )
                 builddir_lock.scheduler.run_until_complete(builddir_lock.async_lock())
-            print("JRG: Breadcrumb 1: doebuild.py")
             mystatus = prepare_build_dirs(myroot, mysettings, cleanup)
             if mystatus:
                 return mystatus

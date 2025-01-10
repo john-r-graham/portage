@@ -22,7 +22,6 @@ class EbuildExecuter(CompositeTask):
         scheduler = self.scheduler
         settings = self.settings
         cleanup = 0
-        print("JRG: Breadcrumb 1: EbuildExecuter.py")
         portage.prepare_build_dirs(pkg.root, settings, cleanup)
 
         if eapi_exports_replace_vars(settings["EAPI"]):

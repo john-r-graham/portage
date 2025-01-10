@@ -161,7 +161,6 @@ class Binpkg(CompositeTask):
 
             lock_task.future.result()
             # Initialize PORTAGE_LOG_FILE (clean_log won't work without it).
-            print("JRG: Breadcrumb 1: Binpkg.py")
             portage.prepare_build_dirs(self.settings["ROOT"], self.settings, 1)
             # If necessary, discard old log so that we don't
             # append to it.

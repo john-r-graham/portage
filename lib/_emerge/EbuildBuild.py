@@ -271,7 +271,6 @@ class EbuildBuild(CompositeTask):
             return
 
         # for log handling
-        print("JRG: Breadcrumb 1: EbuildBuild.py")
         portage.prepare_build_dirs(self.pkg.root, self.settings, 1)
 
         fetcher = EbuildFetcher(

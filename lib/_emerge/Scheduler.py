@@ -1039,7 +1039,6 @@ class Scheduler(PollScheduler):
                     db=self.trees[settings["EROOT"]][tree].dbapi,
                 )
 
-                print("JRG: Breadcrumb 1: Scheduler.py")
                 prepare_build_dirs(root_config.root, settings, cleanup=0)
                 
                 vardb = root_config.trees["vartree"].dbapi
