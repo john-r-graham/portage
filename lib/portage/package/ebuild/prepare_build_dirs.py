@@ -138,7 +138,7 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
         print("JRG: Experimental home-dir-template-copy code...")
         if not cleanup and "home-dir-template-copy" in settings.features:
             print("JRG: Feature test successfull!")
-            portage_username = mysettings["PORTAGE_USERNAME"]
+            portage_username = mysettings.get("PORTAGE_USERNAME", "portage")
             print(f"JRG:     Portage user name is                {portage_username}")	
             home_template_dir = pwd.getpwnam(portage_username).pw_dir
             print(f"JRG:     Template home directory is          {home_template_dir}")
