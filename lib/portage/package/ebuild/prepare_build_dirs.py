@@ -7,6 +7,7 @@ import errno
 import gzip
 import stat
 import time
+import pwd
 
 import portage
 from portage import os, shutil, _encodings, _unicode_encode, _unicode_decode
@@ -135,10 +136,13 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
         _prepare_features_dirs(mysettings)
         # Support for home-dir-template-copy FEATURE:
         print("JRG: Experimental home-dir-template-copy code...")
-        if "home-dir-template-copy" in emerge_config.target_config.settings.features:
+        if not cleanup and "home-dir-template-copy" in settings.features:
             print("JRG: Feature test successfull!")
-            home_template_dir = pwd.getpwnam(env["PORTAGE_USERNAME"]).pw_dir
-            print(f"JRG:     Template home directory is          {home_template_directory}")
+            # print("mysettings:", list(mysettings))
+            portage_username = mysettings["PORTAGE_USERNAME"]
+            print(f"JRG:     Portage user name is                {portage_username}")	
+            home_template_dir = pwd.getpwnam(portage_username).pw_dir
+            print(f"JRG:     Template home directory is          {home_template_dir}")
             print(f"JRG:     Build environment home directory is {mysettings["HOME"]}")
             print(f"JRG:     No action yet. Just ensuring that I've identified the directories.")
 
