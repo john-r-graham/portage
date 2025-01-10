@@ -1216,7 +1216,6 @@ def doebuild(
             mystatus = prepare_build_dirs(myroot, mysettings, cleanup)
             if mystatus:
                 return mystatus
-
             have_build_dirs = True
 
             # emerge handles logging externally

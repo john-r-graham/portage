@@ -1040,7 +1040,7 @@ class Scheduler(PollScheduler):
                 )
 
                 prepare_build_dirs(root_config.root, settings, cleanup=0)
-                
+
                 vardb = root_config.trees["vartree"].dbapi
                 settings["REPLACING_VERSIONS"] = " ".join(
                     {
