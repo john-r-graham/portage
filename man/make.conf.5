@@ -536,6 +536,13 @@ Force emerges to always try to fetch files from the \fIPORTAGE_BINHOST\fR.  See
 Run GPG unlock command every 5 mins to avoid the passphrase expired.
 If your GPG is auto unlocked on login, you do not need this.
 .TP
+.B home-dir-template-copy
+As part of the ebuild environment setup, copy the PORTAGE_USERNAME (default
+"portage") home directory into the build environment HOME directory. This is
+useful, for example, if the git-r3 eclass is being used to access a repository
+via ssh where keys and known_hosts values need to be specified in the ~/.ssh
+directory.
+.TP
 .B icecream
 Enable portage support for the icecream package.
 .TP
