@@ -156,7 +156,7 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
                 writemsg(f"FEATURES home-dir-template-copy enabled but build HOME directory {build_env_home_dir} does not exist.\n", noiselevel=-1)
                 return 1
             print("JRG: Copying template home directory to build HOME directory...")
-            shutil.copytree(home_template_dir, mysettings["HOME"], symlinks=True, dirs_exist_ok=True)
+            shutil.copytree(home_template_dir, build_env_home_dir, symlinks=True, dirs_exist_ok=True)
             print("JRG: Copying template home directory to build HOME directory complete!")
 
 
