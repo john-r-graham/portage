@@ -138,21 +138,22 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
         print("JRG: Experimental home-dir-template-copy code...")
         if not cleanup and "home-dir-template-copy" in settings.features:
             print("JRG: Feature test successfull!")
-            portage_username = mysettings.get("PORTAGE_USERNAME", "portage")
-            print(f"JRG:     Portage user name is                {portage_username}")	
+            portage_username = mysettings.get("PORTAGE_USERNAME", "")
+            username_defaulted=""
+            if portage_username == "":
+                portage_username = "portage"
+                username_defaulted = " (defaulted)"
+            print(f"JRG:     Portage user name is                {portage_username}{username_defaulted}")
             home_template_dir = pwd.getpwnam(portage_username).pw_dir
             print(f"JRG:     Template home directory is          {home_template_dir}")
-            print(f"JRG:     Build environment home directory is {mysettings["HOME"]}")
-            print(f"JRG:     No action yet. Just ensuring that I've identified the directories.")
+            build_env_home_dir = mysettings["HOME"]
+            print(f"JRG:     Build environment home directory is {build_env_home_dir}")
             # Sanity checks on above values.
-            if portage_username == "": 
-                writemsg("FEATURES home-dir-template-copy enabled but PORTAGE_USERNAME is undefined.\n", noiselevel=-1)
-                return 1
             if not os.path.exists(home_template_dir):
                 writemsg(f"FEATURES home-dir-template-copy enabled but specified Linux home directory {home_template_dir} does not exist.\n", noiselevel=-1)
                 return 1
-            if not os.path.exists(home_template_dir):
-                writemsg(f"FEATURES home-dir-template-copy enabled but build HOME directory {mysettings["HOME"]} does not exist.\n", noiselevel=-1)
+            if not os.path.exists(build_env_home_dir):
+                writemsg(f"FEATURES home-dir-template-copy enabled but build HOME directory {build_env_home_dir} does not exist.\n", noiselevel=-1)
                 return 1
             print("JRG: Copying template home directory to build HOME directory...")
             shutil.copytree(home_template_dir, mysettings["HOME"], symlinks=True, dirs_exist_ok=True)
