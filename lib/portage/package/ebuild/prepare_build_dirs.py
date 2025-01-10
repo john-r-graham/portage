@@ -135,9 +135,8 @@ def prepare_build_dirs(myroot=None, settings=None, cleanup=False):
         # a temporary PORTAGE_TMPDIR setting (for fetchonly).
         _prepare_features_dirs(mysettings)
         # Support for home-dir-template-copy FEATURE:
-        print("JRG: Experimental home-dir-template-copy code...")
         if not cleanup and "home-dir-template-copy" in settings.features:
-            print("JRG: Feature test successfull!")
+            print("JRG: Experimental home-dir-template-copy code...")
             portage_username = mysettings.get("PORTAGE_USERNAME", "")
             username_defaulted=""
             if portage_username == "":
