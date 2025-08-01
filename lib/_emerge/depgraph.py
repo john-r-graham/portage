@@ -1,6 +1,9 @@
 # Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
+# JRG debugging:
+from pprint import pprint
+
 import errno
 import functools
 import logging
@@ -11460,8 +11463,9 @@ class depgraph:
             print(graph, file=file)
             print("\nDirectory:", file=file)
             print(dir(graph), file=file)
-            print("\nVariables:")
-            print(vars(graph), file=file)
+            print("\nVariables:", file=file)
+            # print(vars(graph), file=file)
+            pprint(vars(graph), stream=file)
             print("\nAll done.", file=file)
 
         self._depgraph_dump_count += 1
