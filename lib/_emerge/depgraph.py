@@ -655,6 +655,7 @@ class depgraph:
     # user arguments (or their deep dependencies). Such nodes are pulled
     # in by the _complete_graph method.
     _UNREACHABLE_DEPTH = object()
+    _depgraph_dump_count = 0
 
     pkg_tree_map = RootConfig.pkg_tree_map
 
@@ -5588,6 +5589,10 @@ class depgraph:
                     self._dynamic_config._need_config_reload = True
                     return True, myfavorites
             return False, myfavorites
+
+        # JRG: resolver-instrumentation FEATURE:
+        if "resolver-instrumentation" in self._frozen_config.settings.features:
+            self._dump_depgraph(self._dynamic_config.digraph, "raw")
 
         # We're true here unless we are missing binaries.
         return (True, myfavorites)
@@ -11434,6 +11439,27 @@ class depgraph:
 
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
+
+    def _dump_depgraph(self, graph, description):
+        settings = self._frozen_config.settings
+        if settings.get("PORTAGE_LOGDIR"):
+            logdir = normalize_path(settings["PORTAGE_LOGDIR"])
+        else:
+            logdir = os.path.join(os.sep, settings["BROOT"].lstrip(os.sep), "var", "log", "portage")
+
+        timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
+        suffix = chr(ord('a') + self._depgraph_dump_count)
+        logname = os.path.join(
+            logdir,
+            f"depgraph-dump-{description}-{timestamp}{suffix}.log"
+        )
+
+        with open(logname, "w") as file:
+            print("Hello from _dump_depgraph().", file=file)
+            print(graph, file=file)
+            print("All done.", file=file)
+
+        self._depgraph_dump_count += 1
 
 
 class _dep_check_composite_db(dbapi):

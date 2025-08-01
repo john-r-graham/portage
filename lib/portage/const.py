@@ -221,6 +221,7 @@ SUPPORTED_FEATURES = frozenset(
         "protect-owned",
         "python-trace",
         "qa-unresolved-soname-deps",
+        "resolver-instrumentation",
         "sandbox",
         "selinux",
         "sesandbox",
