@@ -11465,7 +11465,7 @@ class depgraph:
             print(dir(graph), file=file)
             print("\nVariables:", file=file)
             # print(vars(graph), file=file)
-            pprint(vars(graph), stream=file)
+            pprint(vars(graph), stream=file, sort_dicts=False)
             print("\nAll done.", file=file)
 
         self._depgraph_dump_count += 1
