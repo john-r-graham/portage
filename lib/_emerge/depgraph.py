@@ -11456,8 +11456,13 @@ class depgraph:
 
         with open(logname, "w") as file:
             print("Hello from _dump_depgraph().", file=file)
+            print("Object type:", file=file)
             print(graph, file=file)
-            print("All done.", file=file)
+            print("\nDirectory:", file=file)
+            print(dir(graph), file=file)
+            print("\nVariables:")
+            print(vars(graph), file=file)
+            print("\nAll done.", file=file)
 
         self._depgraph_dump_count += 1
 
