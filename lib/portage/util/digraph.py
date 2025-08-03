@@ -307,9 +307,9 @@ class digraph:
     def hasallzeros(self, ignore_priority=None):
         return len(self.leaf_nodes(ignore_priority=ignore_priority)) == len(self.order)
 
-    def debug_print(self):
+    def debug_print(self, fd=None):
         def output(s):
-            writemsg(s, noiselevel=-1)
+            writemsg(s, noiselevel=-1, fd=fd)
 
         for node in self.nodes:
             output(f"{node} ")

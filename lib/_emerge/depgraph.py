@@ -11466,6 +11466,11 @@ class depgraph:
             print("\nVariables:", file=file)
             # print(vars(graph), file=file)
             pprint(vars(graph), stream=file, sort_dicts=False)
+
+            # Insert code
+            print("\ndepgraph.debug_print output:", file=file)
+            file.flush()
+            graph.debug_print(fd=file)
             print("\nAll done.", file=file)
 
         self._depgraph_dump_count += 1
