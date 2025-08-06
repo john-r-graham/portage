@@ -320,6 +320,10 @@ class digraph:
             for child, priorities in self.nodes[node][0].items():
                 output(f"  {child} ({priorities[-1]})\n")
 
+    def __repr__(self):
+        attributes = [f"{key}={value!r}" for key, value in self.__dict__.items()]
+        return f"{self.__class__.__name__}({', '.join(attributes)})"
+
     def bfs(self, start, ignore_priority=None):
         if start not in self:
             raise KeyError(start)

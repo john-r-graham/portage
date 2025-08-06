@@ -12,3 +12,7 @@ class AtomArg(DependencyArg):
         DependencyArg.__init__(self, **kwargs)
         self.atom = atom
         self.pset = InternalPackageSet(initial_atoms=(self.atom,), allow_repo=True)
+
+    def __repr__(self):
+        attributes = [f"{key}={value!r}" for key, value in self.__dict__.items()]
+        return f"{self.__class__.__name__}({', '.join(attributes)})"

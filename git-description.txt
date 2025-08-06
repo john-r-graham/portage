@@ -1,0 +1,22 @@
+----commit----commit----commit----master branch
+                                \
+							     \----commit----commit----commit----commit----feature branch
+
+----commit----commit----commit----master branch
+                                \
+ 							     \----commit----bug-fix branch--
+															    \
+																 \----commit----commit----commit----feature branch
+
+
+----commit----commit----commit----master branch
+                                \
+							     \----commit----commit----commit----commit----feature branch
+								 											  bug-fix branch
+
+----commit----commit----commit----master branch
+                                \
+							     \----commit----commit----commit----feature branch
+								  \
+								   \---commit--bug-fix branch
+
