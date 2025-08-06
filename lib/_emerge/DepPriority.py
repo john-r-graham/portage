@@ -61,6 +61,21 @@ class DepPriority(AbstractDepPriority):
     def __repr__(self):
         return self._repr_recursive()
 
+    def __repr__(self):
+        attrs = [(key, value) for key, value in self.__dict__.items() if not callable(value)]
+        attr_strs = []
+        for key, value in attrs:
+            if hasattr(value, '_repr_recursive'):
+                attr_strs.append(f"'{key}': {value._repr_recursive()}")
+            elif value is None:
+                attr_strs.append(f"'{key}': None")
+            elif isinstance(value, bool):
+                attr_strs.append(f"'{key}': {value}")
+            else:
+                attr_strs.append(f"'{key}': {object.__repr__(value)}")
+        return f"DepPriority({{{', '.join(attr_strs)}}})"
+
+
     def _repr_recursive(self, seen=None):
         if seen is None:
             seen = set()
