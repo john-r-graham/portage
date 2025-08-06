@@ -59,22 +59,46 @@ class DepPriority(AbstractDepPriority):
         return "soft"
 
     def __repr__(self):
-        return self._repr_recursive()
+        return self._custom_repr()
 
-    def __repr__(self):
-        attrs = [(key, value) for key, value in self.__dict__.items() if not callable(value)]
-        attr_strs = []
+    def _custom_repr(self, seen=None):
+        """Custom representation for DepPriority with recursion safety"""
+        if seen is None:
+            seen = set()
+        if id(self) in seen:
+            return "DepPriority(...)"
+        seen.add(id(self))
+
+        # Collect attributes from slots
+        attrs = []
+        for attr in self.__slots__:
+            if attr.startswith('__') and attr.endswith('__'):
+                continue  # Skip special methods
+            try:
+                value = getattr(self, attr)
+                if not callable(value):  # Skip methods
+                    attrs.append((attr, value))
+            except AttributeError:
+                continue
+
+        # Format attributes with special handling
+        parts = []
         for key, value in attrs:
-            if hasattr(value, '_repr_recursive'):
-                attr_strs.append(f"'{key}': {value._repr_recursive()}")
+            # Handle recursion for custom objects
+            if hasattr(value, '_custom_repr'):
+                rep = value._custom_repr(seen)
+            # Handle special types
             elif value is None:
-                attr_strs.append(f"'{key}': None")
+                rep = 'None'
             elif isinstance(value, bool):
-                attr_strs.append(f"'{key}': {value}")
+                rep = str(value)
+            # Fallback to safe representation
             else:
-                attr_strs.append(f"'{key}': {object.__repr__(value)}")
-        return f"DepPriority({{{', '.join(attr_strs)}}})"
+                rep = repr(value)
 
+            parts.append(f"'{key}': {rep}")
+        
+        return f"DepPriority({{{', '.join(parts)}}})"
 
     def _repr_recursive(self, seen=None):
         if seen is None:
