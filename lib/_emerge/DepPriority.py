@@ -61,8 +61,8 @@ class DepPriority(AbstractDepPriority):
     def __repr__(self):
         return self._custom_repr()
 
-    def _custom_repr(self, seen=None):
-        """Custom representation for DepPriority with recursion safety"""
+    def _custom_repr(self, seen=None, indent=0, indent_step=4):
+        """Pretty-printed representation with recursion safety and actual newlines"""
         if seen is None:
             seen = set()
         if id(self) in seen:
@@ -79,46 +79,33 @@ class DepPriority(AbstractDepPriority):
                 if not callable(value):  # Skip methods
                     attrs.append((attr, value))
             except AttributeError:
-                continue
+                continue  # Skip attributes that raise errors
 
-        # Format attributes with special handling
-        parts = []
-        for key, value in attrs:
-            # Handle recursion for custom objects
+        # Handle empty case
+        if not attrs:
+            return "DepPriority({})"
+
+        # Format attributes with indentation
+        next_indent = indent + indent_step
+        lines = []
+        for i, (key, value) in enumerate(attrs):
+            # Determine the representation of the value
             if hasattr(value, '_custom_repr'):
-                rep = value._custom_repr(seen)
-            # Handle special types
+                value_repr = value._custom_repr(seen, next_indent, indent_step)
             elif value is None:
-                rep = 'None'
+                value_repr = 'None'
             elif isinstance(value, bool):
-                rep = str(value)
-            # Fallback to safe representation
+                value_repr = str(value)
             else:
-                rep = repr(value)
+                value_repr = repr(value)
 
-            parts.append(f"'{key}': {rep}")
-        
-        return f"DepPriority({{{', '.join(parts)}}})"
+            # Add trailing comma for all but the last item
+            suffix = "," if i < len(attrs) - 1 else ""
+            lines.append(f"{' ' * next_indent}'{key}': {value_repr}{suffix}")
 
-    def _repr_recursive(self, seen=None):
-        if seen is None:
-            seen = set()
-        if id(self) in seen:
-            return f"{self.__class__.__name__}(...)"
-
-        seen.add(id(self))
-
-        if hasattr(self, '__dict__'):
-            attrs = [(key, value) for key, value in self.__dict__.items()]
-        else:
-            attrs = [(key, getattr(self, key)) for key in dir(self) if not key.startswith('__')]
-        attr_strs = []
-        for key, value in attrs:
-            if hasattr(value, '_repr_recursive'):
-                if id(value) in seen:
-                    attr_strs.append(f"{key}=...")
-                else:
-                    attr_strs.append(f"{key}={value._repr_recursive(seen)}")
-            else:
-                attr_strs.append(f"{key}={object.__repr__(value)}")
-        return f"{self.__class__.__name__}({', '.join(attr_strs)})"    
+        # Combine lines with proper indentation and actual newlines
+        return (
+            f"DepPriority({{'\n' if lines else ''}}\n"
+            f"{'\n'.join(lines)}\n"
+            f"{' ' * indent}}})"
+        )
