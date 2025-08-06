@@ -2,6 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from _emerge.AbstractDepPriority import AbstractDepPriority
+import pprint
 
 
 class DepPriority(AbstractDepPriority):
@@ -62,7 +63,7 @@ class DepPriority(AbstractDepPriority):
         return self._custom_repr()
 
     def _custom_repr(self, seen=None, indent=0, indent_step=4):
-        """Pretty-printed representation with recursion safety and actual newlines"""
+        """Pretty-printed representation with recursion safety and proper indentation"""
         if seen is None:
             seen = set()
         if id(self) in seen:
@@ -85,27 +86,11 @@ class DepPriority(AbstractDepPriority):
         if not attrs:
             return "DepPriority({})"
 
-        # Format attributes with indentation
-        next_indent = indent + indent_step
-        lines = []
-        for i, (key, value) in enumerate(attrs):
-            # Determine the representation of the value
-            if hasattr(value, '_custom_repr'):
-                value_repr = value._custom_repr(seen, next_indent, indent_step)
-            elif value is None:
-                value_repr = 'None'
-            elif isinstance(value, bool):
-                value_repr = str(value)
-            else:
-                value_repr = repr(value)
+        # Prepare the attributes for pretty-printing
+        attr_dict = {key: value for key, value in attrs}
+        # Use pprint to format the dictionary with proper indentation
+        pp = pprint.PrettyPrinter(indent=indent_step)
+        attr_repr = pp.pformat(attr_dict)
 
-            # Add trailing comma for all but the last item
-            suffix = "," if i < len(attrs) - 1 else ""
-            lines.append(f"{' ' * next_indent}'{key}': {value_repr}{suffix}")
-
-        # Combine lines with proper indentation and actual newlines
-        return (
-            f"DepPriority({{'\n' if lines else ''}}\n"
-            f"{'\n'.join(lines)}\n"
-            f"{' ' * indent}}})"
-        )
+        # Construct the final string with proper newlines and indentation
+        return f"DepPriority({attr_repr})"
