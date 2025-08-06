@@ -61,25 +61,17 @@ class DepPriority(AbstractDepPriority):
     def __repr__(self):
         return self._repr_recursive()
 
-    def _repr_recursive(self, seen=None):
-        if seen is None:
-            seen = set()
-        if id(self) in seen:
-            return f"{self.__class__.__name__}(...)"
+def _repr_recursive(self, seen=None):
+    if seen is None:
+        seen = set()
+    if id(self) in seen:
+        return f"{self.__class__.__name__}(...)"
 
-        seen.add(id(self))
+    seen.add(id(self))
 
-        if hasattr(self, '__dict__'):
-            attrs = [(key, value) for key, value in self.__dict__.items()]
-        else:
-            attrs = [(key, getattr(self, key)) for key in dir(self) if not key.startswith('__')]
-        attr_strs = []
-        for key, value in attrs:
-            if hasattr(value, '_repr_recursive'):
-                if id(value) in seen:
-                    attr_strs.append(f"{key}=...")
-                else:
-                    attr_strs.append(f"{key}={value._repr_recursive(seen)}")
-            else:
-                attr_strs.append(f"{key}={object.__repr__(value)}")
-        return f"{self.__class__.__name__}({', '.join(attr_strs)})"    
+    if hasattr(self, '__dict__'):
+        attrs = [(key, value) for key, value in self.__dict__.items()]
+    else:
+        attrs = [(key, getattr(self, key)) for key in dir(self) if not key.startswith('__')]
+    attr_strs = [f"{key}={value._repr_recursive(seen) if id(value) not in seen and hasattr(value, '_repr_recursive') else repr(value)}" for key, value in attrs]
+    return f"{self.__class__.__name__}({', '.join(attr_strs)})"
