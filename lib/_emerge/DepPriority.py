@@ -59,5 +59,8 @@ class DepPriority(AbstractDepPriority):
         return "soft"
 
     def __repr__(self):
-        attributes = [f"{key}={value!r}" for key, value in self.__dict__.items()]
+        if hasattr(self, '__dict__'):
+            attributes = [f"{key}={value!r}" for key, value in self.__dict__.items()]
+        else:
+            attributes = [f"{key}={getattr(self, key)!r}" for key in dir(self) if not key.startswith('__')]
         return f"{self.__class__.__name__}({', '.join(attributes)})"
