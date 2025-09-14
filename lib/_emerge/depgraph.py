@@ -3,6 +3,8 @@
 
 # JRG debugging:
 from pprint import pprint
+from rich.console import Console
+from rich import inspect
 
 import errno
 import functools
@@ -11458,20 +11460,16 @@ class depgraph:
         )
 
         with open(logname, "w") as file:
-            print("Hello from _dump_depgraph().", file=file)
-            print("Object type:", file=file)
-            print(graph, file=file)
-            print("\nDirectory:", file=file)
-            print(dir(graph), file=file)
-            print("\nVariables:", file=file)
-            # print(vars(graph), file=file)
-            pprint(vars(graph), stream=file, sort_dicts=False)
+            console = Console(file=file, width=120)
 
+            console.print("Hello from _dump_depgraph().")
+            inspect(graph, console=console, all=True)
+            
             # Insert code
-            print("\ndepgraph.debug_print output:", file=file)
+            console.print("\ndepgraph.debug_print output:")
             file.flush()
             graph.debug_print(fd=file)
-            print("\nAll done.", file=file)
+            console.print("\nAll done.")
 
         self._depgraph_dump_count += 1
 
