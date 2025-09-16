@@ -11460,7 +11460,7 @@ class depgraph:
         )
 
         with open(logname, "w") as file:
-            console = Console(file=file, color_system="256", force_terminal=True, width=256, tab_size=4)
+            console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4, markup=True)
 
             console.print("Hello from _dump_depgraph().")
             inspect(graph, console=console, all=True)
