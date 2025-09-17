@@ -11445,7 +11445,7 @@ class depgraph:
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
 
-    
+
     def _dump_depgraph(self, graph, description):
         settings = self._frozen_config.settings
         if settings.get("PORTAGE_LOGDIR"):
@@ -11472,23 +11472,38 @@ class depgraph:
 
         indent_str = "  " * indent
 
-        # Don't check for self.__better_repr__ - that would be recursive!
-
         if name:
             console.print(f"{indent_str}{name}: {type(self).__name__}")
         else:
             console.print(f"{indent_str}{type(self).__name__}")
 
-        # Automatic discovery of attributes
+        # Get all attributes - not just __dict__
+        attrs = {}
+
+        # Get __dict__ attributes
         if hasattr(self, '__dict__'):
-            for attr_name, attr_value in self.__dict__.items():  # self, not obj
-                self.__dump_attr__(attr_name, attr_value, console, indent + 1, max_depth)  # self.method
-        elif isinstance(self, dict):  # This branch probably won't execute for self
-            for k, v in self.items():
-                self.__dump_attr__(str(k), v, console, indent + 1, max_depth)
-        elif isinstance(self, (list, tuple)):  # This branch probably won't execute for self
-            for i, item in enumerate(self):
-                self.__dump_attr__(f"[{i}]", item, console, indent + 1, max_depth)
+            attrs.update(self.__dict__)
+
+        # Get __slots__ attributes if they exist
+        if hasattr(self, '__slots__'):
+            for slot in self.__slots__:
+                try:
+                    attrs[slot] = getattr(self, slot)
+                except AttributeError:
+                    pass  # Slot not set
+
+        # Also try to get attributes via dir() as fallback
+        for attr_name in dir(self):
+            if not attr_name.startswith('_') or attr_name in ['_depgraph_dump_count']:  # Add your specific vars
+                if attr_name not in attrs:
+                    try:
+                        attrs[attr_name] = getattr(self, attr_name)
+                    except Exception:
+                        pass  # Skip if can't get attribute
+
+        # Dump all collected attributes
+        for attr_name, attr_value in sorted(attrs.items()):
+            self.__dump_attr__(attr_name, attr_value, console, indent + 1, max_depth)
 
     def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
         """Dump individual attributes with special handling"""
