@@ -11510,10 +11510,15 @@ class depgraph:
         """Dump individual attributes with special handling"""
 
         # Debug: what is value?
-        console.print(f"DEBUG: {name} = {type(value)} - {value}")
+        # console.print(f"DEBUG: {name} = {type(value)} - {value}")
         
         # Check for custom __better_repr__ method first
-        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
+        if (hasattr(value, '__better_repr__') and
+            callable(getattr(value, '__better_repr__')) and
+            # Filter out class objects
+            not isinstance(value, type)) \
+        :
+            console.print("  " * indent + f"{name}: {type(value).__name__}")
             try:
                 value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)
             except TypeError as e:
@@ -11523,7 +11528,6 @@ class depgraph:
 
         # Handle basic cases
         console.print("  " * indent + f"{name}: {value}")  # Simple fallback
-
 
 class _dep_check_composite_db(dbapi):
     """
