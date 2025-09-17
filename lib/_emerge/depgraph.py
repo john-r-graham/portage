@@ -11445,33 +11445,61 @@ class depgraph:
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
 
+    
     def _dump_depgraph(self, graph, description):
         settings = self._frozen_config.settings
         if settings.get("PORTAGE_LOGDIR"):
             logdir = normalize_path(settings["PORTAGE_LOGDIR"])
         else:
             logdir = os.path.join(os.sep, settings["BROOT"].lstrip(os.sep), "var", "log", "portage")
-
         timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
         suffix = chr(ord('a') + self._depgraph_dump_count)
         logname = os.path.join(
             logdir,
             f"depgraph-dump-{description}-{timestamp}{suffix}.log"
         )
-
         with open(logname, "w") as file:
-            console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4, markup=True)
-
+            console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
             console.print("Hello from _dump_depgraph().")
-            inspect(graph, console=console, all=True)
-            
-            # Insert code
-            console.print("\ndepgraph.debug_print output:")
-            file.flush()
-            graph.debug_print(fd=file)
-            console.print("\nAll done.")
-
+            self.__better_repr__(console=console)  # Call method correctly
         self._depgraph_dump_count += 1
+
+    def __better_repr__(self, console, name="", indent=0, max_depth=4):
+        """Enhanced smart dump with custom method discovery"""
+        if indent > max_depth:
+            console.print("  " * indent + f"{name}: <max depth reached>")
+            return
+
+        indent_str = "  " * indent
+
+        # Don't check for self.__better_repr__ - that would be recursive!
+
+        if name:
+            console.print(f"{indent_str}{name}: {type(self).__name__}")
+        else:
+            console.print(f"{indent_str}{type(self).__name__}")
+
+        # Automatic discovery of attributes
+        if hasattr(self, '__dict__'):
+            for attr_name, attr_value in self.__dict__.items():  # self, not obj
+                self.__dump_attr__(attr_name, attr_value, console, indent + 1, max_depth)  # self.method
+        elif isinstance(self, dict):  # This branch probably won't execute for self
+            for k, v in self.items():
+                self.__dump_attr__(str(k), v, console, indent + 1, max_depth)
+        elif isinstance(self, (list, tuple)):  # This branch probably won't execute for self
+            for i, item in enumerate(self):
+                self.__dump_attr__(f"[{i}]", item, console, indent + 1, max_depth)
+
+    def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
+        """Dump individual attributes with special handling"""
+        # Check for custom __better_repr__ method first
+        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
+            console.print("  " * indent + f"{name}: {type(value).__name__}")
+            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)  # Pass max_depth
+            return
+
+        # Handle basic cases
+        console.print("  " * indent + f"{name}: {value}")  # Simple fallback
 
 
 class _dep_check_composite_db(dbapi):
