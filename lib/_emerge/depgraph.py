@@ -11508,10 +11508,17 @@ class depgraph:
 
     def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
         """Dump individual attributes with special handling"""
+
+        # Debug: what is value?
+        console.print(f"DEBUG: {name} = {type(value)} - {value}")
+        
         # Check for custom __better_repr__ method first
         if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
-            console.print("  " * indent + f"{name}: {type(value).__name__}")
-            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)  # Pass max_depth
+            try:
+                value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)
+            except TypeError as e:
+                console.print(f"ERROR calling __better_repr__ on {name}: {e}")
+                console.print("  " + str(value))
             return
 
         # Handle basic cases
