@@ -11492,14 +11492,15 @@ class depgraph:
                 except AttributeError:
                     pass  # Slot not set
 
-        # Also try to get attributes via dir() as fallback
+        # Get additional attributes via dir(), but filter appropriately
         for attr_name in dir(self):
-            if not attr_name.startswith('_') or attr_name in ['_depgraph_dump_count']:  # Add your specific vars
-                if attr_name not in attrs:
-                    try:
-                        attrs[attr_name] = getattr(self, attr_name)
-                    except Exception:
-                        pass  # Skip if can't get attribute
+            # ... filtering logic here ...
+            try:
+                attr_value = getattr(self, attr_name)
+                # ... more filtering logic ...
+                attrs[attr_name] = attr_value
+            except Exception:
+                pass
 
         # Dump all collected attributes
         for attr_name, attr_value in sorted(attrs.items()):
