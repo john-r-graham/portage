@@ -5,6 +5,7 @@
 from pprint import pprint
 from rich.console import Console
 from rich import inspect
+from .better_repr import DumpMode
 
 import errno
 import functools
@@ -11445,7 +11446,6 @@ class depgraph:
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
 
-
     def _dump_depgraph(self, graph, description):
         settings = self._frozen_config.settings
         if settings.get("PORTAGE_LOGDIR"):
@@ -11461,73 +11461,79 @@ class depgraph:
         with open(logname, "w") as file:
             console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
             console.print("Hello from _dump_depgraph().")
-            self.__better_repr__(console=console)  # Call method correctly
+            console.print("Methods:")
+            self.__better_repr__(console=console, mode=DumpMode.METHODS)
+            console.print("Data:")
+            self.__better_repr__(console=console, mode=DumpMode.DATA)
         self._depgraph_dump_count += 1
 
-    def __better_repr__(self, console, name="", indent=0, max_depth=4):
-        """Enhanced smart dump with custom method discovery"""
+    def __better_repr__(self, console, indent=0, max_depth=4, mode=DumpMode.DATA):
+        """Enhanced representation with different modes"""
+
         if indent > max_depth:
-            console.print("  " * indent + f"{name}: <max depth reached>")
+            console.print("  " * indent + "<max depth reached>")
             return
 
         indent_str = "  " * indent
+        console.print(f"{indent_str}{type(self).__name__}")
 
-        if name:
-            console.print(f"{indent_str}{name}: {type(self).__name__}")
-        else:
-            console.print(f"{indent_str}{type(self).__name__}")
+        if mode == DumpMode.DATA:
+            self._dump_data_attributes(console, indent, max_depth)
+        elif mode == DumpMode.METHODS:
+            self._dump_methods_only(console, indent)
+        elif mode == DumpMode.ALL:
+            self._dump_all_attributes(console, indent, max_depth)
 
-        # Get all attributes - not just __dict__
+    def _dump_data_attributes(self, console, indent, max_depth):
+        """Show only data attributes with full recursion"""
         attrs = {}
-
-        # Get __dict__ attributes
         if hasattr(self, '__dict__'):
             attrs.update(self.__dict__)
 
-        # Get __slots__ attributes if they exist
-        if hasattr(self, '__slots__'):
-            for slot in self.__slots__:
+        # Filter out callable attributes (methods/functions)
+        data_attrs = {k: v for k, v in attrs.items() if not callable(v)}
+
+        for name, value in sorted(data_attrs.items()):
+            self.__dump_attr__(name, value, console, indent + 1, max_depth)
+
+    def _dump_methods_only(self, console, indent):
+        """Show only methods, no recursion"""
+        attrs = {}
+        if hasattr(self, '__dict__'):
+            attrs.update(self.__dict__)
+
+        # Get methods from dir() too, but avoid internal double-underscore methods
+        for name in dir(self):
+            if not name.startswith('__') or name in ['__init__', '__str__', '__repr__']:
+                if name not in attrs:
+                    try:
+                        attrs[name] = getattr(self, name)
+                    except Exception:
+                        pass
+
+        method_attrs = {k: v for k, v in attrs.items() if callable(v)}
+
+        if method_attrs:
+            console.print("  " * (indent + 1) + f"[Methods: {len(method_attrs)}]")
+            for name in sorted(method_attrs.keys()):
+                console.print("  " * (indent + 2) + name)
+
+    def _dump_all_attributes(self, console, indent, max_depth):
+        """Show everything with limited recursion"""
+        attrs = {}
+        if hasattr(self, '__dict__'):
+            attrs.update(self.__dict__)
+
+        # Add other attributes from dir() if needed
+        for name in dir(self):
+            if name not in attrs and not name.startswith('_'):
                 try:
-                    attrs[slot] = getattr(self, slot)
-                except AttributeError:
-                    pass  # Slot not set
+                    attrs[name] = getattr(self, name)
+                except Exception:
+                    pass
 
-        # Get additional attributes via dir(), but filter appropriately
-        for attr_name in dir(self):
-            # ... filtering logic here ...
-            try:
-                attr_value = getattr(self, attr_name)
-                # ... more filtering logic ...
-                attrs[attr_name] = attr_value
-            except Exception:
-                pass
-
-        # Dump all collected attributes
-        for attr_name, attr_value in sorted(attrs.items()):
-            self.__dump_attr__(attr_name, attr_value, console, indent + 1, max_depth)
-
-    def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
-        """Dump individual attributes with special handling"""
-
-        # Debug: what is value?
-        # console.print(f"DEBUG: {name} = {type(value)} - {value}")
-        
-        # Check for custom __better_repr__ method first
-        if (hasattr(value, '__better_repr__') and
-            callable(getattr(value, '__better_repr__')) and
-            # Filter out class objects
-            not isinstance(value, type)) \
-        :
-            console.print("  " * indent + f"{name}: {type(value).__name__}")
-            try:
-                value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)
-            except TypeError as e:
-                console.print(f"ERROR calling __better_repr__ on {name}: {e}")
-                console.print("  " + str(value))
-            return
-
-        # Handle basic cases
-        console.print("  " * indent + f"{name}: {value}")  # Simple fallback
+        for name, value in sorted(attrs.items()):
+            self.__dump_attr__(name, value, console, indent + 1, max_depth)
 
 class _dep_check_composite_db(dbapi):
     """
