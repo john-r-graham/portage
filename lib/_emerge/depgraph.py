@@ -5598,7 +5598,7 @@ class depgraph:
 
         # JRG: resolver-instrumentation FEATURE:
         if "resolver-instrumentation" in self._frozen_config.settings.features:
-            self._dump_depgraph(self._dynamic_config.digraph, "raw")
+            self._dump_depgraph("raw")
 
         # We're true here unless we are missing binaries.
         return (True, myfavorites)
@@ -11446,6 +11446,27 @@ class depgraph:
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
 
+    def _dump_depgraph(self, description):
+        settings = self._frozen_config.settings
+        if settings.get("PORTAGE_LOGDIR"):
+            logdir = normalize_path(settings["PORTAGE_LOGDIR"])
+        else:
+            logdir = os.path.join(os.sep, settings["BROOT"].lstrip(os.sep), "var", "log", "portage")
+        timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
+        suffix = chr(ord('a') + self._depgraph_dump_count)
+        logname = os.path.join(
+            logdir,
+            f"depgraph-dump-{description}-{timestamp}{suffix}.log"
+        )
+        with open(logname, "w") as file:
+            console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
+            console.print("Hello from _dump_depgraph().")
+            console.print("Methods:")
+            self.__better_repr__(console=console, mode=DumpMode.METHODS)
+            console.print("Data:")
+            self.__better_repr__(console=console, mode=DumpMode.DATA)
+        self._depgraph_dump_count += 1
+
     def __better_repr__(self, console, indent=0, max_depth=4, mode=DumpMode.DATA, visited=None):
         """Enhanced representation with different modes"""
         if visited is None:
@@ -11475,6 +11496,25 @@ class depgraph:
 
         visited.discard(obj_id)
 
+    def _dump_methods_only(self, console, indent):
+        """Show only methods, no recursion"""
+        attrs = {}
+        if hasattr(self, '__dict__'):
+            attrs.update(self.__dict__)
+        # Get methods from dir() too, but avoid internal double-underscore methods
+        for name in dir(self):
+            if not name.startswith('__') or name in ['__init__', '__str__', '__repr__']:
+                if name not in attrs:
+                    try:
+                        attrs[name] = getattr(self, name)
+                    except Exception:
+                        pass
+        method_attrs = {k: v for k, v in attrs.items() if callable(v)}
+        if method_attrs:
+            console.print("  " * (indent + 1) + f"[Methods: {len(method_attrs)}]")
+            for name in sorted(method_attrs.keys()):
+                console.print("  " * (indent + 2) + name)
+
     def _dump_data_attributes(self, console, indent, max_depth, visited=None):
         """Show only data attributes with full recursion"""
         attrs = {}
@@ -11488,6 +11528,14 @@ class depgraph:
         dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
         if dir_attrs:
             console.print("  " * (indent + 1) + f"Additional dir() attributes: {dir_attrs}")
+
+        # Add other attributes from dir() if needed
+        for name in dir(self):
+            if name not in attrs and not name.startswith('_'):
+                try:
+                    attrs[name] = getattr(self, name)
+                except Exception:
+                    pass
 
         # Filter out callable attributes (methods/functions)
         data_attrs = {}
