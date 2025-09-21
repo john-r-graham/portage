@@ -11446,117 +11446,87 @@ class depgraph:
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
 
-    def _dump_depgraph(self, graph, description):
-        settings = self._frozen_config.settings
-        if settings.get("PORTAGE_LOGDIR"):
-            logdir = normalize_path(settings["PORTAGE_LOGDIR"])
-        else:
-            logdir = os.path.join(os.sep, settings["BROOT"].lstrip(os.sep), "var", "log", "portage")
-        timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
-        suffix = chr(ord('a') + self._depgraph_dump_count)
-        logname = os.path.join(
-            logdir,
-            f"depgraph-dump-{description}-{timestamp}{suffix}.log"
-        )
-        with open(logname, "w") as file:
-            console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
-            console.print("Hello from _dump_depgraph().")
-            console.print("Methods:")
-            self.__better_repr__(console=console, mode=DumpMode.METHODS)
-            console.print("Data:")
-            self.__better_repr__(console=console, mode=DumpMode.DATA)
-        self._depgraph_dump_count += 1
-
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=DumpMode.DATA):
+    def __better_repr__(self, console, indent=0, max_depth=4, mode=DumpMode.DATA, visited=None):
         """Enhanced representation with different modes"""
+        if visited is None:
+            visited = set()
+
+        # Handle circular references
+        obj_id = id(self)
+        if obj_id in visited:
+            console.print("  " * indent + "<cycle detected>")
+            return
+        visited.add(obj_id)
 
         if indent > max_depth:
             console.print("  " * indent + "<max depth reached>")
+            visited.discard(obj_id)
             return
 
         indent_str = "  " * indent
         console.print(f"{indent_str}{type(self).__name__}")
 
         if mode == DumpMode.DATA:
-            self._dump_data_attributes(console, indent, max_depth)
+            self._dump_data_attributes(console, indent, max_depth, visited)
         elif mode == DumpMode.METHODS:
             self._dump_methods_only(console, indent)
         elif mode == DumpMode.ALL:
-            self._dump_all_attributes(console, indent, max_depth)
+            self._dump_all_attributes(console, indent, max_depth, visited)
 
-    def _dump_data_attributes(self, console, indent, max_depth):
+        visited.discard(obj_id)
+
+    def _dump_data_attributes(self, console, indent, max_depth, visited=None):
         """Show only data attributes with full recursion"""
         attrs = {}
+
+        # Get instance attributes
         if hasattr(self, '__dict__'):
+            console.print("  " * (indent + 1) + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
             attrs.update(self.__dict__)
+
+        # Debug: show what dir() finds
+        dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
+        if dir_attrs:
+            console.print("  " * (indent + 1) + f"Additional dir() attributes: {dir_attrs}")
 
         # Filter out callable attributes (methods/functions)
-        data_attrs = {k: v for k, v in attrs.items() if not callable(v)}
+        data_attrs = {}
+        for k, v in attrs.items():
+            if not callable(v):
+                data_attrs[k] = v
+            else:
+                console.print("  " * (indent + 1) + f"Skipping callable: {k}")
+
+        console.print("  " * (indent + 1) + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            self.__dump_attr__(name, value, console, indent + 1, max_depth)
+            self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
 
-    def _dump_methods_only(self, console, indent):
-        """Show only methods, no recursion"""
-        attrs = {}
-        if hasattr(self, '__dict__'):
-            attrs.update(self.__dict__)
-
-        # Get methods from dir() too, but avoid internal double-underscore methods
-        for name in dir(self):
-            if not name.startswith('__') or name in ['__init__', '__str__', '__repr__']:
-                if name not in attrs:
-                    try:
-                        attrs[name] = getattr(self, name)
-                    except Exception:
-                        pass
-
-        method_attrs = {k: v for k, v in attrs.items() if callable(v)}
-
-        if method_attrs:
-            console.print("  " * (indent + 1) + f"[Methods: {len(method_attrs)}]")
-            for name in sorted(method_attrs.keys()):
-                console.print("  " * (indent + 2) + name)
-
-    def _dump_all_attributes(self, console, indent, max_depth):
+    def _dump_all_attributes(self, console, indent, max_depth, visited):
         """Show everything with limited recursion"""
         attrs = {}
         if hasattr(self, '__dict__'):
             attrs.update(self.__dict__)
-
-        # Add other attributes from dir() if needed
         for name in dir(self):
-            if name not in attrs and not name.startswith('_'):
+            if not name.startswith('_') and name not in attrs:
                 try:
                     attrs[name] = getattr(self, name)
                 except Exception:
                     pass
-
         for name, value in sorted(attrs.items()):
-            self.__dump_attr__(name, value, console, indent + 1, max_depth)
+            self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
 
-    def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
+    def __dump_attr__(self, name, value, console, indent, max_depth, visited):
         """Dump individual attributes with special handling"""
-
-        # Debug: what is value?
-        # console.print(f"DEBUG: {name} = {type(value)} - {value}")
-        
-        # Check for custom __better_repr__ method first
-        if (hasattr(value, '__better_repr__') and
-            callable(getattr(value, '__better_repr__')) and
-            # Filter out class objects
-            not isinstance(value, type)) \
-        :
+        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')) and not isinstance(value, type):
             console.print("  " * indent + f"{name}: {type(value).__name__}")
             try:
-                value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)
+                value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited)
             except TypeError as e:
                 console.print(f"ERROR calling __better_repr__ on {name}: {e}")
                 console.print("  " + str(value))
             return
-
-        # Handle basic cases
-        console.print("  " * indent + f"{name}: {value}")  # Simple fallback
+        console.print("  " * indent + f"{name}: {value}")
 
 class _dep_check_composite_db(dbapi):
     """
