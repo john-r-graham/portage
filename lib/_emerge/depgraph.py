@@ -2,9 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 # JRG debugging:
-from pprint import pprint
 from rich.console import Console
-from rich import inspect
 from .better_repr import DumpMode
 
 import errno
@@ -11492,8 +11490,6 @@ class depgraph:
             self._dump_data_attributes(console, indent, max_depth, visited)
         elif mode == DumpMode.METHODS:
             self._dump_methods_only(console, indent)
-        elif mode == DumpMode.ALL:
-            self._dump_all_attributes(console, indent, max_depth, visited)
 
         visited.discard(obj_id)
 
@@ -11550,32 +11546,6 @@ class depgraph:
 
         for name, value in sorted(data_attrs.items()):
             self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
-
-    def _dump_all_attributes(self, console, indent, max_depth, visited):
-        """Show everything with limited recursion"""
-        attrs = {}
-        if hasattr(self, '__dict__'):
-            attrs.update(self.__dict__)
-        for name in dir(self):
-            if not name.startswith('_') and name not in attrs:
-                try:
-                    attrs[name] = getattr(self, name)
-                except Exception:
-                    pass
-        for name, value in sorted(attrs.items()):
-            self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
-
-    def __dump_attr__(self, name, value, console, indent, max_depth, visited):
-        """Dump individual attributes with special handling"""
-        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')) and not isinstance(value, type):
-            console.print("  " * indent + f"{name}: {type(value).__name__}")
-            try:
-                value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited)
-            except TypeError as e:
-                console.print(f"ERROR calling __better_repr__ on {name}: {e}")
-                console.print("  " + str(value))
-            return
-        console.print("  " * indent + f"{name}: {value}")
 
 class _dep_check_composite_db(dbapi):
     """
