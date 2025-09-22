@@ -18,7 +18,8 @@ __init__py = configure_file(
 
 py.install_sources(
     [
-        'binpkg.py',
+        'better_repr.py',
+		'binpkg.py',
         'checksum.py',
         const_py,
         'cvstree.py',

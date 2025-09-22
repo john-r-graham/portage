@@ -99,4 +99,3 @@ py.install_sources(
 )
 
 subdir('resolver')
-subdir('better_repr')

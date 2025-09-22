@@ -3,7 +3,7 @@
 
 # JRG debugging:
 from rich.console import Console
-from .better_repr import DumpMode
+import portage.better_repr
 
 import errno
 import functools
@@ -653,6 +653,102 @@ class _dynamic_depgraph_config:
             dbs.append((vardb, "installed", True, True, db_keys))
             self._filtered_trees[myroot]["dbs"] = dbs
 
+    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None):
+        """Enhanced representation with different modes"""
+        if visited is None:
+            visited = set()
+
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+
+        # Handle circular references
+        obj_id = id(self)
+        if obj_id in visited:
+            console.print(indent_str + "<cycle detected>")
+            return
+        visited.add(obj_id)
+
+        if indent > max_depth:
+            console.print(indent_str + "<max depth reached>")
+            visited.discard(obj_id)
+            return
+
+        console.print(f"{indent_str}{type(self).__name__}")
+
+        if mode == portage.better_repr.DumpMode.DATA:
+            self._dump_data_attributes(console, indent + 1, max_depth, visited)
+        elif mode == portage.better_repr.DumpMode.METHODS:
+            self._dump_methods_only(console, indent + 1)
+
+        visited.discard(obj_id)
+
+    def _dump_methods_only(self, console, indent):
+        """Show only methods, no recursion"""
+        indent_str0 = " " * (indent + 0) * portage.better_repr.Settings.INDENT_INCREMENT
+        indent_str1 = " " * (indent + 1) * portage.better_repr.Settings.INDENT_INCREMENT
+        attrs = {}
+        if hasattr(self, '__dict__'):
+            attrs.update(self.__dict__)
+        # Get methods from dir() too, but avoid internal double-underscore methods
+        for name in dir(self):
+            if not name.startswith('__') or name in ['__init__', '__str__', '__repr__']:
+                if name not in attrs:
+                    try:
+                        attrs[name] = getattr(self, name)
+                    except Exception:
+                        pass
+        method_attrs = {k: v for k, v in attrs.items() if callable(v)}
+        if method_attrs:
+            console.print(indent_str0 + f"[Methods: {len(method_attrs)}]")
+            for name in sorted(method_attrs.keys()):
+                console.print(indent_str1 + name)
+
+    def _dump_data_attributes(self, console, indent, max_depth, visited=None):
+        """Show only data attributes with full recursion"""
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+        attrs = {}
+
+        # Get instance attributes
+        if hasattr(self, '__dict__'):
+            console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            attrs.update(self.__dict__)
+
+        # Debug: show what dir() finds
+        dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
+        if dir_attrs:
+            console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
+
+        # Add other attributes from dir() if needed
+        for name in dir(self):
+            if name not in attrs and not name.startswith('_'):
+                try:
+                    attrs[name] = getattr(self, name)
+                except Exception:
+                    pass
+
+        # Filter out callable attributes (methods/functions)
+        data_attrs = {}
+        for k, v in attrs.items():
+            if not callable(v):
+                data_attrs[k] = v
+            else:
+                console.print(indent_str + f"Skipping callable: {k}")
+
+        console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
+
+        for name, value in sorted(data_attrs.items()):
+            self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
+
+    def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
+        """Dump individual attributes with special handling"""
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+        # Check for custom __better_repr__ method first
+        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
+            console.print(indent_str + f"{name}: {type(value).__name__}")
+            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)  # Pass max_depth
+            return
+
+        # Handle basic cases
+        console.print(indent_str + f"{name}: {value}")  # Simple fallback
 
 class depgraph:
     # Represents the depth of a node that is unreachable from explicit
@@ -11461,40 +11557,43 @@ class depgraph:
             console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
             console.print("Hello from _dump_depgraph().")
             console.print("Methods:")
-            self.__better_repr__(console=console, mode=DumpMode.METHODS)
+            self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.METHODS)
             console.print("Data:")
-            self.__better_repr__(console=console, mode=DumpMode.DATA)
+            self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.DATA)
         self._depgraph_dump_count += 1
 
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=DumpMode.DATA, visited=None):
+    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None):
         """Enhanced representation with different modes"""
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+
         if visited is None:
             visited = set()
 
         # Handle circular references
         obj_id = id(self)
         if obj_id in visited:
-            console.print("  " * indent + "<cycle detected>")
+            console.print(indent_str + "<cycle detected>")
             return
         visited.add(obj_id)
 
         if indent > max_depth:
-            console.print("  " * indent + "<max depth reached>")
+            console.print(indent_str + "<max depth reached>")
             visited.discard(obj_id)
             return
 
-        indent_str = "  " * indent
         console.print(f"{indent_str}{type(self).__name__}")
 
-        if mode == DumpMode.DATA:
-            self._dump_data_attributes(console, indent, max_depth, visited)
-        elif mode == DumpMode.METHODS:
-            self._dump_methods_only(console, indent)
+        if mode == portage.better_repr.DumpMode.DATA:
+            self._dump_data_attributes(console, indent + 1, max_depth, visited)
+        elif mode == portage.better_repr.DumpMode.METHODS:
+            self._dump_methods_only(console, indent + 1)
 
         visited.discard(obj_id)
 
     def _dump_methods_only(self, console, indent):
         """Show only methods, no recursion"""
+        indent_str0 = " " * (indent + 0) * portage.better_repr.Settings.INDENT_INCREMENT
+        indent_str1 = " " * (indent + 1) * portage.better_repr.Settings.INDENT_INCREMENT
         attrs = {}
         if hasattr(self, '__dict__'):
             attrs.update(self.__dict__)
@@ -11508,23 +11607,24 @@ class depgraph:
                         pass
         method_attrs = {k: v for k, v in attrs.items() if callable(v)}
         if method_attrs:
-            console.print("  " * (indent + 1) + f"[Methods: {len(method_attrs)}]")
+            console.print(indent_str0 + f"[Methods: {len(method_attrs)}]")
             for name in sorted(method_attrs.keys()):
-                console.print("  " * (indent + 2) + name)
+                console.print(indent_str1 + name)
 
     def _dump_data_attributes(self, console, indent, max_depth, visited=None):
         """Show only data attributes with full recursion"""
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         attrs = {}
 
         # Get instance attributes
         if hasattr(self, '__dict__'):
-            console.print("  " * (indent + 1) + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
             attrs.update(self.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
         if dir_attrs:
-            console.print("  " * (indent + 1) + f"Additional dir() attributes: {dir_attrs}")
+            console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(self):
@@ -11542,10 +11642,22 @@ class depgraph:
             else:
                 console.print("  " * (indent + 1) + f"Skipping callable: {k}")
 
-        console.print("  " * (indent + 1) + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
+            self.__dump_attr__(name, value, console, indent, max_depth, visited)
+
+    def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
+        """Dump individual attributes with special handling"""
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+        # Check for custom __better_repr__ method first
+        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
+            console.print(indent_str + f"{name}: {type(value).__name__}")
+            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)  # Pass max_depth
+            return
+
+        # Handle basic cases
+        console.print("  " * indent + f"{name}: {value}")  # Simple fallback
 
 class _dep_check_composite_db(dbapi):
     """
