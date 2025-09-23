@@ -508,6 +508,11 @@ class digraph:
             value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited, visited_debug=visited_debug)
             return
 
+        # For basic immutable types, don't track in visited set
+        if type(value) in (bool, type(None), int, str, float):
+            console.print(indent_str + f"{name}: {value}")
+            return
+
         # Handle basic cases - add to visited set to prevent cycles in their references
         visited.add(obj_id)
         visited_debug[obj_id] = f"{type(value).__name__} via {name}"
