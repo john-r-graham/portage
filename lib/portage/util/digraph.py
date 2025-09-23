@@ -399,33 +399,39 @@ class digraph:
                         all_cycles.append(path)
         return all_cycles
 
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None):
+    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
-
         if visited is None:
             visited = set()
+            visited_debug = {}  # Separate debug tracking
 
         # Handle circular references
         obj_id = id(self)
+        console.print(f"DEBUG [__better_repr__]: Checking cycle for {type(self).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in visited:
-            console.print(indent_str + "<cycle detected>")
+            console.print(indent_str + f"<cycle detected> - object ID {obj_id}")
+            console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
+
         visited.add(obj_id)
+        visited_debug[obj_id] = f"{type(self).__name__} at indent {indent}"
+        console.print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
 
         if indent > max_depth:
             console.print(indent_str + "<max depth reached>")
             visited.discard(obj_id)
+            del visited_debug[obj_id]
             return
 
         console.print(f"{indent_str}{type(self).__name__}")
-
         if mode == portage.better_repr.DumpMode.DATA:
-            self._dump_data_attributes(console, indent + 1, max_depth, visited)
+            self._dump_data_attributes(console, indent + 1, max_depth, visited, visited_debug)
         elif mode == portage.better_repr.DumpMode.METHODS:
             self._dump_methods_only(console, indent + 1)
 
         visited.discard(obj_id)
+        del visited_debug[obj_id]
 
     def _dump_methods_only(self, console, indent):
         """Show only methods, no recursion"""
@@ -448,21 +454,20 @@ class digraph:
             for name in sorted(method_attrs.keys()):
                 console.print(indent_str1 + name)
 
-    def _dump_data_attributes(self, console, indent, max_depth, visited=None):
+    def _dump_data_attributes(self, console, indent, max_depth, visited, visited_debug):
         """Show only data attributes with full recursion"""
-        indent_str0 = " " * (indent + 0) * portage.better_repr.Settings.INDENT_INCREMENT
-        indent_str1 = " " * (indent + 1) * portage.better_repr.Settings.INDENT_INCREMENT
+        indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         attrs = {}
 
         # Get instance attributes
         if hasattr(self, '__dict__'):
-            console.print(indent_str0 + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
             attrs.update(self.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
         if dir_attrs:
-            console.print(indent_str0 + f"Additional dir() attributes: {dir_attrs}")
+            console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(self):
@@ -478,33 +483,35 @@ class digraph:
             if not callable(v):
                 data_attrs[k] = v
             else:
-                console.print(indent_str0 + f"Skipping callable: {k}")
+                console.print(indent_str + f"Skipping callable: {k}")
 
-        console.print(indent_str1 + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            self.__dump_attr(name, value, console, indent + 1, max_depth, visited)
+            self._dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)
 
-    def __dump_attr(self, name, value, console, indent, max_depth, visited):
+    def _dump_attr(self, name, value, console, indent, max_depth, visited, visited_debug):
         """Dump individual attributes with special handling"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
-
         # Check for circular references
         obj_id = id(value)
+        console.print(f"DEBUG [_dump_attr]: Checking cycle for {type(value).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in visited:
             console.print(indent_str + f"{name}: <cycle detected for {type(value).__name__} object>")
+            console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
-
         # Check for custom __better_repr__ method first
         if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
             console.print(indent_str + f"{name}: {type(value).__name__}")
             # Add to visited set before recursive call
             visited.add(obj_id)
-            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited)
+            visited_debug[obj_id] = f"{type(value).__name__} via {name}"
+            console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
+            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited, visited_debug=visited_debug)
             # Remove from visited set after recursive call
             visited.discard(obj_id)
+            del visited_debug[obj_id]
             return
-
         # Handle basic cases
         console.print(indent_str + f"{name}: {value}")  # Simple fallback
 
