@@ -754,20 +754,21 @@ class _dynamic_depgraph_config:
             console.print(indent_str + f"{name}: <cycle detected for {type(value).__name__} object>")
             console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
+
         # Check for custom __better_repr__ method first
         if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
             console.print(indent_str + f"{name}: {type(value).__name__}")
-            # Add to visited set before recursive call
-            visited.add(obj_id)
-            visited_debug[obj_id] = f"{type(value).__name__} via {name}"
-            console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
+            # Let the object handle its own visited set management
             value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited, visited_debug=visited_debug)
-            # Remove from visited set after recursive call
-            visited.discard(obj_id)
-            del visited_debug[obj_id]
             return
-        # Handle basic cases
-        console.print(indent_str + f"{name}: {value}")  # Simple fallback
+
+        # Handle basic cases - add to visited set to prevent cycles in their references
+        visited.add(obj_id)
+        visited_debug[obj_id] = f"{type(value).__name__} via {name}"
+        console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
+        console.print(indent_str + f"{name}: {value}")
+        # Note: for basic objects, you might want to remove them from visited set after processing
+        # depending on your cycle detection strategy
 
 class depgraph:
     # Represents the depth of a node that is unreachable from explicit
@@ -11682,20 +11683,21 @@ class depgraph:
             console.print(indent_str + f"{name}: <cycle detected for {type(value).__name__} object>")
             console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
+
         # Check for custom __better_repr__ method first
         if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
             console.print(indent_str + f"{name}: {type(value).__name__}")
-            # Add to visited set before recursive call
-            visited.add(obj_id)
-            visited_debug[obj_id] = f"{type(value).__name__} via {name}"
-            console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
+            # Let the object handle its own visited set management
             value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited, visited_debug=visited_debug)
-            # Remove from visited set after recursive call
-            visited.discard(obj_id)
-            del visited_debug[obj_id]
             return
-        # Handle basic cases
-        console.print(indent_str + f"{name}: {value}")  # Simple fallback
+
+        # Handle basic cases - add to visited set to prevent cycles in their references
+        visited.add(obj_id)
+        visited_debug[obj_id] = f"{type(value).__name__} via {name}"
+        console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
+        console.print(indent_str + f"{name}: {value}")
+        # Note: for basic objects, you might want to remove them from visited set after processing
+        # depending on your cycle detection strategy
 
 class _dep_check_composite_db(dbapi):
     """
