@@ -399,7 +399,7 @@ class digraph:
                         all_cycles.append(path)
         return all_cycles
 
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=DumpMode.DATA, visited=None):
+    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None):
         """Enhanced representation with different modes"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
 
@@ -485,13 +485,23 @@ class digraph:
         for name, value in sorted(data_attrs.items()):
             self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
 
-    def __dump_attr__(self, name, value, console, indent, max_depth):  # Added self parameter
+    def __dump_attr__(self, name, value, console, indent, max_depth):
         """Dump individual attributes with special handling"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+
+        # Check for circular references
+        obj_id = id(value)
+        if obj_id in visited:
+            console.print(indent_str + f"{name}: <cycle detected for {type(value).__name__} object>")
+            return
+
         # Check for custom __better_repr__ method first
         if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
             console.print(indent_str + f"{name}: {type(value).__name__}")
-            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth)  # Pass max_depth
+            # Add to visited set before recursive call
+            visited.add(obj_id)
+            value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited)
+            # Optionally remove from visited set after (depends on your cycle detection strategy)
             return
 
         # Handle basic cases
