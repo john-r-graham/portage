@@ -662,15 +662,15 @@ class _dynamic_depgraph_config:
 
         # Handle circular references
         obj_id = id(self)
-        console.print(f"DEBUG [__better_repr__]: Checking cycle for {type(self).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
+        # console.print(f"DEBUG [__better_repr__]: Checking cycle for {type(self).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in visited:
             console.print(indent_str + f"<cycle detected> - object ID {obj_id}")
-            console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
+            # console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
 
         visited.add(obj_id)
         visited_debug[obj_id] = f"{type(self).__name__} at indent {indent}"
-        console.print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
+        # console.print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
 
         if indent > max_depth:
             console.print(indent_str + "<max depth reached>")
@@ -749,10 +749,10 @@ class _dynamic_depgraph_config:
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         # Check for circular references
         obj_id = id(value)
-        console.print(f"DEBUG [_dump_attr]: Checking cycle for {type(value).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
+        # console.print(f"DEBUG [_dump_attr]: Checking cycle for {type(value).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in visited:
             console.print(indent_str + f"{name}: <cycle detected for {type(value).__name__} object>")
-            console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
+            # console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
 
         # Check for custom __better_repr__ method first
@@ -770,7 +770,7 @@ class _dynamic_depgraph_config:
         # Handle basic cases - add to visited set to prevent cycles in their references
         visited.add(obj_id)
         visited_debug[obj_id] = f"{type(value).__name__} via {name}"
-        console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
+        # console.print(f"DEBUG: Added {type(value).__name__} (ID {obj_id}) to visited set via {name}")
         console.print(indent_str + f"{name}: {value}")
         # Note: for basic objects, you might want to remove them from visited set after processing
         # depending on your cycle detection strategy
