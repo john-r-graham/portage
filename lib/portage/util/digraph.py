@@ -461,13 +461,13 @@ class digraph:
 
         # Get instance attributes
         if hasattr(self, '__dict__'):
-            console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            # console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
             attrs.update(self.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
-        if dir_attrs:
-            console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
+        # if dir_attrs:
+        #    console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(self):
@@ -482,10 +482,10 @@ class digraph:
         for k, v in attrs.items():
             if not callable(v):
                 data_attrs[k] = v
-            else:
-                console.print(indent_str + f"Skipping callable: {k}")
+            # else:
+            #    console.print(indent_str + f"Skipping callable: {k}")
 
-        console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        # console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
             portage.better_repr.dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)

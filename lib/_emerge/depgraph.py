@@ -715,13 +715,13 @@ class _dynamic_depgraph_config:
 
         # Get instance attributes
         if hasattr(self, '__dict__'):
-            console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            # console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
             attrs.update(self.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
-        if dir_attrs:
-            console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
+        #if dir_attrs:
+        #    console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(self):
@@ -736,10 +736,10 @@ class _dynamic_depgraph_config:
         for k, v in attrs.items():
             if not callable(v):
                 data_attrs[k] = v
-            else:
-                console.print(indent_str + f"Skipping callable: {k}")
+            # else:
+            #     console.print(indent_str + f"Skipping callable: {k}")
 
-        console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        # console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
             portage.better_repr.dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)
@@ -11565,7 +11565,7 @@ class depgraph:
 
         # Handle circular references
         obj_id = id(self)
-        console.print(f"DEBUG [__better_repr__]: Checking cycle for {type(self).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
+        # console.print(f"DEBUG [__better_repr__]: Checking cycle for {type(self).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in visited:
             console.print(indent_str + f"<cycle detected> - object ID {obj_id}")
             console.print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
@@ -11573,7 +11573,7 @@ class depgraph:
 
         visited.add(obj_id)
         visited_debug[obj_id] = f"{type(self).__name__} at indent {indent}"
-        console.print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
+        # console.print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
 
         if indent > max_depth:
             console.print(indent_str + "<max depth reached>")
@@ -11618,13 +11618,13 @@ class depgraph:
 
         # Get instance attributes
         if hasattr(self, '__dict__'):
-            console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            # console.print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
             attrs.update(self.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
-        if dir_attrs:
-            console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
+        # if dir_attrs:
+        #     console.print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(self):
@@ -11639,10 +11639,10 @@ class depgraph:
         for k, v in attrs.items():
             if not callable(v):
                 data_attrs[k] = v
-            else:
-                console.print(indent_str + f"Skipping callable: {k}")
+            # else:
+            #     console.print(indent_str + f"Skipping callable: {k}")
 
-        console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        # console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
             portage.better_repr.dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)

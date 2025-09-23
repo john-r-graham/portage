@@ -9,7 +9,7 @@ class Settings:
 
 def dump_attr(name, value, console, indent, max_depth, visited, visited_debug):
     """Dump individual attributes with special handling"""
-    indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
+    indent_str = " " * indent * Settings.INDENT_INCREMENT
     # Check for circular references
     obj_id = id(value)
     # console.print(f"DEBUG [_dump_attr]: Checking cycle for {type(value).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
