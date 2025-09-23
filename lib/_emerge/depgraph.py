@@ -736,9 +736,9 @@ class _dynamic_depgraph_config:
         console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            self.__dump_attr__(name, value, console, indent + 1, max_depth, visited)
+            self.__dump_attr(name, value, console, indent + 1, max_depth, visited)
 
-    def __dump_attr__(self, name, value, console, indent, max_depth, visited):
+    def __dump_attr(self, name, value, console, indent, max_depth, visited):
         """Dump individual attributes with special handling"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
 
@@ -754,7 +754,8 @@ class _dynamic_depgraph_config:
             # Add to visited set before recursive call
             visited.add(obj_id)
             value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited)
-            # Optionally remove from visited set after (depends on your cycle detection strategy)
+            # Remove from visited set after recursive call
+            visited.discard(obj_id)
             return
 
         # Handle basic cases
@@ -11655,9 +11656,9 @@ class depgraph:
         console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            self.__dump_attr__(name, value, console, indent, max_depth, visited)
+            self.__dump_attr(name, value, console, indent, max_depth, visited)
 
-    def __dump_attr__(self, name, value, console, indent, max_depth, visited):
+    def __dump_attr(self, name, value, console, indent, max_depth, visited):
         """Dump individual attributes with special handling"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
 
@@ -11673,7 +11674,8 @@ class depgraph:
             # Add to visited set before recursive call
             visited.add(obj_id)
             value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, visited=visited)
-            # Optionally remove from visited set after (depends on your cycle detection strategy)
+            # Remove from visited set after recursive call
+            visited.discard(obj_id)
             return
 
         # Handle basic cases
