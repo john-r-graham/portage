@@ -655,6 +655,7 @@ class _dynamic_depgraph_config:
 
     def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
+        console.print(f"Hello from {type(self).__name__} __better_repr__. indent={indent}.")
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
             visited = set()
@@ -11558,6 +11559,7 @@ class depgraph:
 
     def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
+        console.print(f"Hello from {type(self).__name__} __better_repr__. indent={indent}.")
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
             visited = set()
