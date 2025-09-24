@@ -427,9 +427,9 @@ class digraph:
 
         console.print(f"{indent_str}{type(self).__name__}")
         if mode == portage.better_repr.DumpMode.DATA:
-            self._dump_data_attributes(console, indent + 1, max_depth, visited, visited_debug)
+            self._dump_data_attributes(console, indent, max_depth, visited, visited_debug)
         elif mode == portage.better_repr.DumpMode.METHODS:
-            self._dump_methods_only(console, indent + 1)
+            self._dump_methods_only(console, indent)
 
         visited.discard(obj_id)
         del visited_debug[obj_id]
