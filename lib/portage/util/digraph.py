@@ -399,9 +399,8 @@ class digraph:
                         all_cycles.append(path)
         return all_cycles
 
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+    def __better_repr__(self, console, indent=0, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
-        console.print(f"Hello from {type(self).__name__} __better_repr__. indent={indent}.")
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
             visited = set()
@@ -425,7 +424,7 @@ class digraph:
             del visited_debug[obj_id]
             return
 
-        console.print(f"{indent_str}{type(self).__name__}")
+        console.print(f"{type(self).__name__}")
         if mode == portage.better_repr.DumpMode.DATA:
             self._dump_data_attributes(console, indent, max_depth, visited, visited_debug)
         elif mode == portage.better_repr.DumpMode.METHODS:
@@ -489,7 +488,7 @@ class digraph:
         # console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            portage.better_repr.dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)
+            portage.better_repr.dump_attr(name, value, console, indent, max_depth, visited, visited_debug)
 
     # Backward compatibility
     addnode = add

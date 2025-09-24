@@ -24,8 +24,8 @@ def dump_attr(name, value, console, indent, max_depth, visited, visited_debug):
 
     # Check for custom __better_repr__ method first
     if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
-        # Print the attribute name and let the object handle its own content indentation
-        console.print(indent_str + f"{name}: {type(value).__name__}")
+        # Don't print the type name, just the attribute name and colon
+        console.print(indent_str + f"{name}: ", end='')
         # Pass indent + 1 so nested content is properly indented
         value.__better_repr__(console=console, indent=indent + 1, max_depth=max_depth, 
                             visited=visited, visited_debug=visited_debug)

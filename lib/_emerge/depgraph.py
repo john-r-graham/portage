@@ -653,9 +653,8 @@ class _dynamic_depgraph_config:
             dbs.append((vardb, "installed", True, True, db_keys))
             self._filtered_trees[myroot]["dbs"] = dbs
 
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+    def __better_repr__(self, console, indent=0, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
-        console.print(f"Hello from {type(self).__name__} __better_repr__. indent={indent}.")
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
             visited = set()
@@ -679,7 +678,7 @@ class _dynamic_depgraph_config:
             del visited_debug[obj_id]
             return
 
-        console.print(f"{indent_str}{type(self).__name__}")
+        console.print(f"{type(self).__name__}")
         if mode == portage.better_repr.DumpMode.DATA:
             self._dump_data_attributes(console, indent, max_depth, visited, visited_debug)
         elif mode == portage.better_repr.DumpMode.METHODS:
@@ -743,7 +742,7 @@ class _dynamic_depgraph_config:
         # console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            portage.better_repr.dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)
+            portage.better_repr.dump_attr(name, value, console, indent, max_depth, visited, visited_debug)
 
 class depgraph:
     # Represents the depth of a node that is unreachable from explicit
@@ -11557,9 +11556,8 @@ class depgraph:
             self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.DATA)
         self._depgraph_dump_count += 1
 
-    def __better_repr__(self, console, indent=0, max_depth=4, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+    def __better_repr__(self, console, indent=0, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
-        console.print(f"Hello from {type(self).__name__} __better_repr__. indent={indent}.")
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
             visited = set()
@@ -11583,7 +11581,7 @@ class depgraph:
             del visited_debug[obj_id]
             return
 
-        console.print(f"{indent_str}{type(self).__name__}")
+        console.print(f"{type(self).__name__}")
         if mode == portage.better_repr.DumpMode.DATA:
             self._dump_data_attributes(console, indent, max_depth, visited, visited_debug)
         elif mode == portage.better_repr.DumpMode.METHODS:
@@ -11647,7 +11645,7 @@ class depgraph:
         # console.print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            portage.better_repr.dump_attr(name, value, console, indent + 1, max_depth, visited, visited_debug)
+            portage.better_repr.dump_attr(name, value, console, indent, max_depth, visited, visited_debug)
 
 class _dep_check_composite_db(dbapi):
     """
