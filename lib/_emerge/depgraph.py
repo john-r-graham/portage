@@ -11547,11 +11547,11 @@ class depgraph:
             f"depgraph-dump-{description}-{timestamp}{suffix}.log"
         )
         with open(logname, "w") as file:
-            writemsg("Hello from _dump_depgraph().\n", fd=file)
+            # writemsg("Hello from _dump_depgraph().\n", fd=file)
             console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
             console.print("Hello from _dump_depgraph().")
-            console.print("Methods:")
-            self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.METHODS)
+            # console.print("Methods:")
+            # self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.METHODS)
             console.print("Data:")
             self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.DATA)
         self._depgraph_dump_count += 1
