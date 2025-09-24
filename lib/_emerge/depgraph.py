@@ -653,7 +653,7 @@ class _dynamic_depgraph_config:
             dbs.append((vardb, "installed", True, True, db_keys))
             self._filtered_trees[myroot]["dbs"] = dbs
 
-    def __better_repr__(self, console, indent=0, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+    def __better_repr__(self, console, indent=1, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
@@ -11556,7 +11556,7 @@ class depgraph:
             self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.DATA)
         self._depgraph_dump_count += 1
 
-    def __better_repr__(self, console, indent=0, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+    def __better_repr__(self, console, indent=1, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:

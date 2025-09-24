@@ -399,7 +399,7 @@ class digraph:
                         all_cycles.append(path)
         return all_cycles
 
-    def __better_repr__(self, console, indent=0, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+    def __better_repr__(self, console, indent=1, max_depth=16, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
         """Enhanced representation with different modes"""
         indent_str = " " * indent * portage.better_repr.Settings.INDENT_INCREMENT
         if visited is None:
