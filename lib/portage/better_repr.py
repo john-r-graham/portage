@@ -32,15 +32,9 @@ def dump_attr(name, value, console, indent, max_depth, visited, visited_debug):
         return
 
     # Handle collections that need multi-line formatting
+    # Handle collections that need multi-line formatting
     if isinstance(value, dict):
-        if not value:  # Empty dict
-            console.print(indent_str + f"{name}: {{}}")
-            return
-        console.print(indent_str + f"{name}: {{")
-        next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
-        for k, v in value.items():
-            console.print(f"{next_indent_str}{k}: {v}")
-        console.print(indent_str + "}")
+        _dump_dict(name, value, console, indent, max_depth, visited, visited_debug)
         return
     elif isinstance(value, (list, tuple, set)):
         if not value:  # Empty collection
@@ -55,3 +49,56 @@ def dump_attr(name, value, console, indent, max_depth, visited, visited_debug):
 
     # Handle basic cases
     console.print(indent_str + f"{name}: {value}")
+
+def _dump_dict(name, value, console, indent, max_depth, visited, visited_debug):
+    indent_str = " " * indent * Settings.INDENT_INCREMENT
+
+    if not value:  # Empty dict
+        console.print(indent_str + f"{name}: {{}}")
+        return
+
+    console.print(indent_str + f"{name}: {{")
+
+    if indent >= max_depth:
+        console.print(indent_str + "  <max depth reached>")
+        console.print(indent_str + "}")
+        return
+
+    next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
+
+    for k, v in value.items():
+        if isinstance(v, dict):
+            _dump_dict(k, v, console, indent + 1, max_depth, visited, visited_debug)
+        elif isinstance(v, (list, tuple, set)):
+            _dump_collection(k, v, console, indent + 1, max_depth, visited, visited_debug)
+        else:
+            console.print(f"{next_indent_str}{k}: {v}")
+
+    console.print(indent_str + "}")
+
+def _dump_collection(name, value, console, indent, max_depth, visited, visited_debug):
+    indent_str = " " * indent * Settings.INDENT_INCREMENT
+
+    if not value:  # Empty collection
+        console.print(indent_str + f"{name}: {type(value).__name__}()")
+        return
+
+    console.print(indent_str + f"{name}: {type(value).__name__}(")
+
+    if indent >= max_depth:
+        console.print(indent_str + "  <max depth reached>")
+        console.print(indent_str + ")")
+        return
+
+    next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
+
+    for item in value:
+        if isinstance(item, dict):
+            _dump_dict(None, item, console, indent + 1, max_depth, visited, visited_debug)
+        elif isinstance(item, (list, tuple, set)):
+            _dump_collection(None, item, console, indent + 1, max_depth, visited, visited_debug)
+        else:
+            item_str = str(item) if item is not None else "None"
+            console.print(f"{next_indent_str}{item_str}")
+
+    console.print(indent_str + ")")
