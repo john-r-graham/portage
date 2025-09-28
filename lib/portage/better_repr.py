@@ -184,11 +184,22 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
 def _dump_collection(name, value, console, indent, visited, visited_debug):
     indent_str = " " * indent * Settings.INDENT_INCREMENT
 
+    # Use appropriate brackets based on collection type
+    if isinstance(value, list):
+        open_delim, close_delim = "[", "]"
+    elif isinstance(value, tuple):
+        open_delim, close_delim = "(", ")"
+    elif isinstance(value, set):
+        open_delim, close_delim = "{", "}"
+    else:
+        # Fallback for other collection types
+        open_delim, close_delim = "(", ")"
+
     if not value:  # Empty collection
-        console.print(indent_str + f"{name}: {type(value).__name__}()")
+        console.print(indent_str + f"{name}: {type(value).__name__}{open_delim}{close_delim}")
         return
 
-    console.print(indent_str + f"{name}: {type(value).__name__}(")
+    console.print(indent_str + f"{name}: {type(value).__name__}{open_delim}")
 
     if indent >= Settings.MAX_DEPTH:
         console.print(indent_str + "  <max depth reached>")
@@ -206,7 +217,7 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             # For items with custom __better_repr__, we don't print a name since they're list elements
             item.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
         else:
-            item_str = repr(item) if isinstance(item, str) else repr(item) if item is not None else "None"
+            item_str = repr(item) if isinstance(item, str) if item is not None else "None"
             console.print(f"{next_indent_str}{item_str}")
 
-    console.print(indent_str + ")")
+    console.print(indent_str + f"{close_delim}")
