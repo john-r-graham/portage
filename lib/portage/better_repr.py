@@ -119,9 +119,11 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
         # Don't print the type name, just the attribute name and colon
         console.print(indent_str + f"{name}: ", end='')
         # Pass indent + 1 so nested content is properly indented
-        value.__better_repr__(console=console, indent=indent + 1, 
-                            visited=visited, visited_debug=visited_debug)
+        value.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
         return
+
+    if name == "metadata":
+        console.print(indent_str + f"DEBUG: {name} is a {obj_type}")
 
     # Handle collections that need multi-line formatting
     if isinstance(value, dict):
@@ -135,20 +137,19 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
     console.print(indent_str + f"{name}: {value}")
 
 def _dump_dict(name, value, console, indent, visited, visited_debug):
-    indent_str = " " * indent * Settings.INDENT_INCREMENT
+    indent_str0 = " " * (indent + 0) * Settings.INDENT_INCREMENT
+    indent_str1 = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     if not value:  # Empty dict
-        console.print(indent_str + f"{repr(name)}: {{}}")
+        console.print(indent_str0 + f"{repr(name)}: {{}}")
         return
 
-    console.print(indent_str + f"{repr(name)}: {{")
+    console.print(indent_str0 + f"{repr(name)}: {{")
 
     if indent >= Settings.MAX_DEPTH:
-        console.print(indent_str + "  <max depth reached>")
-        console.print(indent_str + "}")
+        console.print(indent_str0 + "  <max depth reached>")
+        console.print(indent_str0 + "}")
         return
-
-    next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     for k, v in value.items():
         if isinstance(k, list):
@@ -166,15 +167,16 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
         elif isinstance(v, (list, tuple, set)):
             _dump_collection(k, v, console, indent + 1, visited, visited_debug)
         elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
-            console.print(f"{next_indent_str}{k}: ", end='')
+            console.print(f"{indent_str1}{k}: ", end='')
             v.__better_repr__(console=console, indent=indent + 2, visited=visited, visited_debug=visited_debug)
         else:
-            console.print(f"{next_indent_str}{k}: {v}")
+            console.print(f"{indent_str1}{k}: {v}")
 
-    console.print(indent_str + "}")
+    console.print(indent_str0 + "}")
 
 def _dump_collection(name, value, console, indent, visited, visited_debug):
-    indent_str = " " * indent * Settings.INDENT_INCREMENT
+    indent_str0 = " " * (indent + 0) * Settings.INDENT_INCREMENT
+    indent_str1 = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     # Use appropriate brackets based on collection type
     if isinstance(value, list):
@@ -188,17 +190,15 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
         open_delim, close_delim = "(", ")"
 
     if not value:  # Empty collection
-        console.print(indent_str + f"{name}: {type(value).__name__}{open_delim}{close_delim}")
+        console.print(indent_str0 + f"{name}: {type(value).__name__}{open_delim}{close_delim}")
         return
 
-    console.print(indent_str + f"{name}: {type(value).__name__}{open_delim}")
+    console.print(indent_str0 + f"{name}: {type(value).__name__}{open_delim}")
 
     if indent >= Settings.MAX_DEPTH:
-        console.print(indent_str + "  <max depth reached>")
-        console.print(indent_str + ")")
+        console.print(indent_str0 + "  <max depth reached>")
+        console.print(indent_str0 + ")")
         return
-
-    next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     for item in value:
         if isinstance(item, dict):
@@ -207,9 +207,10 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             _dump_collection(None, item, console, indent + 1, visited, visited_debug)
         elif hasattr(item, '__better_repr__') and callable(getattr(item, '__better_repr__')):
             # For items with custom __better_repr__, we don't print a name since they're list elements
-            item.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
+            console.print(f"{indent_str1}", end='')
+            item.__better_repr__(console=console, indent=indent + 2, visited=visited, visited_debug=visited_debug)
         else:
             item_str = repr(item) if item is not None else "None"
-            console.print(f"{next_indent_str}{item_str}")
+            console.print(f"{indent_str1}{item_str}")
 
-    console.print(indent_str + f"{close_delim}")
+    console.print(indent_str0 + f"{close_delim}")
