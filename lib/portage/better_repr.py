@@ -173,6 +173,9 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
             _dump_dict(k, v, console, indent + 1, visited, visited_debug)
         elif isinstance(v, (list, tuple, set)):
             _dump_collection(k, v, console, indent + 1, visited, visited_debug)
+        elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
+            console.print(f"{next_indent_str}{k}: ", end='')
+            v.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
         else:
             console.print(f"{next_indent_str}{k}: {v}")
 
@@ -199,6 +202,9 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             _dump_dict(None, item, console, indent + 1, visited, visited_debug)
         elif isinstance(item, (list, tuple, set)):
             _dump_collection(None, item, console, indent + 1, visited, visited_debug)
+        elif hasattr(item, '__better_repr__') and callable(getattr(item, '__better_repr__')):
+            # For items with custom __better_repr__, we don't print a name since they're list elements
+            item.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
         else:
             item_str = repr(item) if isinstance(item, str) else repr(item) if item is not None else "None"
             console.print(f"{next_indent_str}{item_str}")
