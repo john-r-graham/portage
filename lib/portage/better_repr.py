@@ -190,7 +190,7 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
         elif isinstance(item, (list, tuple, set)):
             _dump_collection(None, item, console, indent + 1, visited, visited_debug)
         else:
-            item_str = str(item) if item is not None else "None"
+            item_str = repr(item) if isinstance(item, str) else repr(item) if item is not None else "None"
             console.print(f"{next_indent_str}{item_str}")
 
     console.print(indent_str + ")")
