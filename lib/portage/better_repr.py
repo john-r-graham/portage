@@ -146,10 +146,10 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
     indent_str = " " * indent * Settings.INDENT_INCREMENT
 
     if not value:  # Empty dict
-        console.print(indent_str + f"{name}: {{}}")
+        console.print(indent_str + f"{repr(name)}: {{}}")
         return
 
-    console.print(indent_str + f"{name}: {{")
+    console.print(indent_str + f"{repr(name)}: {{")
 
     if indent >= Settings.MAX_DEPTH:
         console.print(indent_str + "  <max depth reached>")
@@ -167,7 +167,7 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
             prefix = "set"
         else:
             prefix = ""
-        k=f"{prefix}{str(k)}"
+        k=f"{prefix}{repr(k)}"
 
         if isinstance(v, dict):
             _dump_dict(k, v, console, indent + 1, visited, visited_debug)
