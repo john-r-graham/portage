@@ -124,19 +124,11 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
         return
 
     # Handle collections that need multi-line formatting
-    # Handle collections that need multi-line formatting
     if isinstance(value, dict):
         _dump_dict(name, value, console, indent, visited, visited_debug)
         return
     elif isinstance(value, (list, tuple, set)):
-        if not value:  # Empty collection
-            console.print(indent_str + f"{name}: {type(value).__name__}()")
-            return
-        console.print(indent_str + f"{name}: {type(value).__name__}(")
-        next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
-        for item in value:
-            console.print(f"{next_indent_str}{item}")
-        console.print(indent_str + ")")
+        _dump_collection(name, value, console, indent, visited, visited_debug)
         return
 
     # Handle basic cases
