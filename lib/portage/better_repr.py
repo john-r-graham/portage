@@ -159,6 +159,16 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
     next_indent_str = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     for k, v in value.items():
+        if isinstance(k, list):
+            prefix = "list"
+        elif isinstance(k, tuple):
+            prefix = "tuple"
+        elif isinstance(k, set):
+            prefix = "set"
+        else:
+            prefix = ""
+        k=f"{prefix}{str(k)}"
+
         if isinstance(v, dict):
             _dump_dict(k, v, console, indent + 1, visited, visited_debug)
         elif isinstance(v, (list, tuple, set)):
