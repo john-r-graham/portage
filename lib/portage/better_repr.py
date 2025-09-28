@@ -175,7 +175,7 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
             _dump_collection(k, v, console, indent + 1, visited, visited_debug)
         elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
             console.print(f"{next_indent_str}{k}: ", end='')
-            v.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
+            v.__better_repr__(console=console, indent=indent + 2, visited=visited, visited_debug=visited_debug)
         else:
             console.print(f"{next_indent_str}{k}: {v}")
 
