@@ -217,7 +217,7 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             # For items with custom __better_repr__, we don't print a name since they're list elements
             item.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
         else:
-            item_str = repr(item) if isinstance(item, str) if item is not None else "None"
+            item_str = repr(item) if item is not None else "None"
             console.print(f"{next_indent_str}{item_str}")
 
     console.print(indent_str + f"{close_delim}")
