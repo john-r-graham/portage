@@ -114,6 +114,9 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
             console.print(indent_str + f"{name}: <cycle detected for {obj_type.__name__} object>")
             return
 
+    if name == "metadata":
+        console.print(indent_str + f"DEBUG: {name} is a {obj_type}")
+
     # Check for custom __better_repr__ method first
     if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
         # Don't print the type name, just the attribute name and colon
@@ -121,9 +124,6 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
         # Pass indent + 1 so nested content is properly indented
         value.__better_repr__(console=console, indent=indent + 1, visited=visited, visited_debug=visited_debug)
         return
-
-    if name == "metadata":
-        console.print(indent_str + f"DEBUG: {name} is a {obj_type}")
 
     # Handle collections that need multi-line formatting
     if isinstance(value, dict):
