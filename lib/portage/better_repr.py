@@ -141,10 +141,10 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
     indent_str1 = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     if not value:  # Empty dict
-        console.print(indent_str0 + f"{repr(name)}: {{}}")
+        console.print(indent_str0 + f"{name}: {{}}")
         return
 
-    console.print(indent_str0 + f"{repr(name)}: {{")
+    console.print(indent_str0 + f"{name}: {{")
 
     if indent >= Settings.MAX_DEPTH:
         console.print(indent_str0 + "  <max depth reached>")
@@ -158,13 +158,15 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
             prefix = "tuple"
         elif isinstance(k, set):
             prefix = "set"
+        elif isinstance(k, dict):
+            prefix = "dict"
         else:
             prefix = ""
         k=f"{prefix}{repr(k)}"
 
         if isinstance(v, dict):
             _dump_dict(k, v, console, indent + 1, visited, visited_debug)
-        elif isinstance(v, (list, tuple, set)):
+        elif isinstance(v, (list, tuple, set, frozenset)):
             _dump_collection(k, v, console, indent + 1, visited, visited_debug)
         elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
             console.print(f"{indent_str1}{k}: ", end='')
