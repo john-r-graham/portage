@@ -114,8 +114,8 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
             console.print(indent_str + f"{name}: <cycle detected for {obj_type.__name__} object>")
             return
 
-    if name == "metadata":
-        console.print(indent_str + f"DEBUG: {name} is a {obj_type}")
+    # if name in ("metadata", "allowed_keys"):
+    #     console.print(indent_str + f"DEBUG: {name} is a {obj_type}")
 
     # Check for custom __better_repr__ method first
     if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
@@ -129,7 +129,7 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
     if isinstance(value, dict):
         _dump_dict(name, value, console, indent, visited, visited_debug)
         return
-    elif isinstance(value, (list, tuple, set)):
+    elif isinstance(value, (list, tuple, set, frozenset)):
         _dump_collection(name, value, console, indent, visited, visited_debug)
         return
 
@@ -183,7 +183,7 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
         open_delim, close_delim = "[", "]"
     elif isinstance(value, tuple):
         open_delim, close_delim = "(", ")"
-    elif isinstance(value, set):
+    elif isinstance(value, (set, frozenset)):
         open_delim, close_delim = "{", "}"
     else:
         # Fallback for other collection types
@@ -197,13 +197,13 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
 
     if indent >= Settings.MAX_DEPTH:
         console.print(indent_str0 + "  <max depth reached>")
-        console.print(indent_str0 + ")")
+        console.print(indent_str0 + close_delim)
         return
 
     for item in value:
         if isinstance(item, dict):
             _dump_dict(None, item, console, indent + 1, visited, visited_debug)
-        elif isinstance(item, (list, tuple, set)):
+        elif isinstance(item, (list, tuple, set, frozenset)):
             _dump_collection(None, item, console, indent + 1, visited, visited_debug)
         elif hasattr(item, '__better_repr__') and callable(getattr(item, '__better_repr__')):
             # For items with custom __better_repr__, we don't print a name since they're list elements
@@ -213,4 +213,4 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             item_str = repr(item) if item is not None else "None"
             console.print(f"{indent_str1}{item_str}")
 
-    console.print(indent_str0 + f"{close_delim}")
+    console.print(indent_str0 + close_delim)
