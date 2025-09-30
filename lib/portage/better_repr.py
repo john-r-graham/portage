@@ -140,11 +140,13 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
     indent_str0 = " " * (indent + 0) * Settings.INDENT_INCREMENT
     indent_str1 = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
+    name_str = f"{name}: " if name is not None else ""
+
     if not value:  # Empty dict
-        console.print(f"{indent_str0}{name}: dict {{}}")
+        console.print(f"{indent_str0}{name_str}dict {{}}")
         return
 
-    console.print(f"{indent_str0}{name}: dict {{")
+    console.print(f"{indent_str0}{name_str}dict {{")
 
     if indent >= Settings.MAX_DEPTH:
         console.print(f"{indent_str0}  <max depth reached>")
@@ -164,10 +166,6 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
             prefix = "dict"
         else:
             prefix = ""
-
-        if k == "None":
-            console.print(f"{indent_str0}DEBUG: _dump_dict: k == ""None"".")
-
         k=f"{prefix}{repr(k)}"
 
         if isinstance(v, dict):
@@ -197,19 +195,18 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
         # Fallback for other collection types
         open_delim, close_delim = "(", ")"
 
+    name_str = f"{name}: " if name is not None else ""
+
     if not value:  # Empty collection
-        console.print(f"{indent_str0}{name}: {type(value).__name__} {open_delim}{close_delim}")
+        console.print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}{close_delim}")
         return
 
-    console.print(f"{indent_str0}{name}: {type(value).__name__} {open_delim}")
+    console.print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}")
 
     if indent >= Settings.MAX_DEPTH:
         console.print(f"{indent_str0}  <max depth reached>")
         console.print(f"{indent_str0}{close_delim}")
         return
-
-    if name is None:
-        console.print(f"{indent_str0}DEBUG: _dump_collection: name == ""None"".")
 
     for item in value:
         if isinstance(item, dict):
@@ -221,7 +218,6 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             console.print(f"{indent_str1}", end='')
             item.__better_repr__(console=console, indent=indent + 2, visited=visited, visited_debug=visited_debug)
         else:
-            item_str = repr(item) if item is not None else "NoneX"
-            console.print(f"{indent_str1}{item_str}")
+            console.print(f"{indent_str1}{repr(item)}")
 
-    console.print(indent_str0 + close_delim)
+    console.print(f"{indent_str0}{close_delim}")
