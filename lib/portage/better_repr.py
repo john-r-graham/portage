@@ -134,7 +134,7 @@ def dump_attr(name, value, console, indent, visited, visited_debug):
         return
 
     # Handle basic cases
-    console.print(indent_str + f"{name}: {value}")
+    console.print(indent_str + f"{name}: {repr(value)}")
 
 def _dump_dict(name, value, console, indent, visited, visited_debug):
     indent_str0 = " " * (indent + 0) * Settings.INDENT_INCREMENT

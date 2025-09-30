@@ -1,12 +1,15 @@
 # Copyright 2015-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-
+import portage.better_repr
 
 class SonameAtom:
     __slots__ = ("multilib_category", "soname", "_hash_key", "_hash_value")
 
     # Distiguishes package atoms from other atom types
     package = False
+
+    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
 
     def __init__(self, multilib_category, soname):
         object.__setattr__(self, "multilib_category", multilib_category)

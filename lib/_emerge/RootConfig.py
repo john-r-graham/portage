@@ -1,5 +1,6 @@
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
+import portage.better_repr
 
 
 class RootConfig:
@@ -13,6 +14,9 @@ class RootConfig:
     tree_pkg_map = {}
     for k, v in pkg_tree_map.items():
         tree_pkg_map[v] = k
+
+    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
 
     def __init__(self, settings, trees, setconfig):
         self.trees = trees

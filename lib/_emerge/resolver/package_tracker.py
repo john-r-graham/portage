@@ -3,6 +3,7 @@
 
 import bisect
 import collections
+import portage.better_repr
 
 import portage
 
@@ -371,6 +372,9 @@ class PackageTrackerDbapiWrapper:
     dbapi interface. Remove it once all consumers have
     died.
     """
+
+    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
+        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
 
     def __init__(self, root, package_tracker):
         self._root = root
