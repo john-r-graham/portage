@@ -28,7 +28,7 @@ def default_better_repr(self, console, indent=1, mode=DumpMode.DATA, visited=Non
     # console.print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
 
     if indent > Settings.MAX_DEPTH:
-        console.print(indent_str + "<max depth reached>")
+        console.print(f"{indent_str}  <max depth reached>")
         visited.discard(obj_id)
         del visited_debug[obj_id]
         return
@@ -141,14 +141,14 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
     indent_str1 = " " * (indent + 1) * Settings.INDENT_INCREMENT
 
     if not value:  # Empty dict
-        console.print(indent_str0 + f"{name}: {{}}")
+        console.print(f"{indent_str0}{name}: dict {{}}")
         return
 
-    console.print(indent_str0 + f"{name}: {{")
+    console.print(f"{indent_str0}{name}: dict {{")
 
     if indent >= Settings.MAX_DEPTH:
-        console.print(indent_str0 + "  <max depth reached>")
-        console.print(indent_str0 + "}")
+        console.print(f"{indent_str0}  <max depth reached>")
+        console.print(f"{indent_str0} }}")
         return
 
     for k, v in value.items():
@@ -158,10 +158,16 @@ def _dump_dict(name, value, console, indent, visited, visited_debug):
             prefix = "tuple"
         elif isinstance(k, set):
             prefix = "set"
+        elif isinstance(k, frozenset):
+            prefix = "frozenset"
         elif isinstance(k, dict):
             prefix = "dict"
         else:
             prefix = ""
+
+        if k == "None":
+            console.print(f"{indent_str0}DEBUG: _dump_dict: k == ""None"".")
+
         k=f"{prefix}{repr(k)}"
 
         if isinstance(v, dict):
@@ -192,15 +198,18 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
         open_delim, close_delim = "(", ")"
 
     if not value:  # Empty collection
-        console.print(indent_str0 + f"{name}: {type(value).__name__}{open_delim}{close_delim}")
+        console.print(f"{indent_str0}{name}: {type(value).__name__} {open_delim}{close_delim}")
         return
 
-    console.print(indent_str0 + f"{name}: {type(value).__name__}{open_delim}")
+    console.print(f"{indent_str0}{name}: {type(value).__name__} {open_delim}")
 
     if indent >= Settings.MAX_DEPTH:
-        console.print(indent_str0 + "  <max depth reached>")
-        console.print(indent_str0 + close_delim)
+        console.print(f"{indent_str0}  <max depth reached>")
+        console.print(f"{indent_str0}{close_delim}")
         return
+
+    if name is None:
+        console.print(f"{indent_str0}DEBUG: _dump_collection: name == ""None"".")
 
     for item in value:
         if isinstance(item, dict):
@@ -212,7 +221,7 @@ def _dump_collection(name, value, console, indent, visited, visited_debug):
             console.print(f"{indent_str1}", end='')
             item.__better_repr__(console=console, indent=indent + 2, visited=visited, visited_debug=visited_debug)
         else:
-            item_str = repr(item) if item is not None else "None"
+            item_str = repr(item) if item is not None else "NoneX"
             console.print(f"{indent_str1}{item_str}")
 
     console.print(indent_str0 + close_delim)
