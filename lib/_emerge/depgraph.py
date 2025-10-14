@@ -11465,7 +11465,7 @@ class depgraph:
             # console.print("Methods:")
             # self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.METHODS)
             console.print("Data:")
-            self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.DATA)
+            BetterRepr(console).__better_repr__(self)
         self._depgraph_dump_count += 1
 
     def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
