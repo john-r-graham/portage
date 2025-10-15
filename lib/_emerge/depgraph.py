@@ -653,8 +653,8 @@ class _dynamic_depgraph_config:
             dbs.append((vardb, "installed", True, True, db_keys))
             self._filtered_trees[myroot]["dbs"] = dbs
 
-    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
 class depgraph:
     # Represents the depth of a node that is unreachable from explicit
@@ -11462,14 +11462,12 @@ class depgraph:
             # writemsg("Hello from _dump_depgraph().\n", fd=file)
             console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
             console.print("Hello from _dump_depgraph().")
-            # console.print("Methods:")
-            # self.__better_repr__(console=console, mode=portage.better_repr.DumpMode.METHODS)
             console.print("Data:")
-            BetterRepr(console).__better_repr__(self)
+            portage.better_repr.BetterRepr(console, flags=portage.better_repr.Flags.PRINT_LINE_NUMBERS)._better_repr_core(self)
         self._depgraph_dump_count += 1
 
-    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
 class _dep_check_composite_db(dbapi):
     """

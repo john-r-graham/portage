@@ -8,30 +8,37 @@ class Settings:
     INDENT_INCREMENT = 4
     MAX_DEPTH=16
 
+class Flags:
+    PRINT_LINE_NUMBERS = 1
+    DUMP_DATA          = 2
+    DUMP_METHODS       = 4
+
 class BetterRepr:
-    def __init__(self, console, mode=DumpMode.DATA):
+    def __init__(self, console, mode=DumpMode.DATA, flags=0):
         self.console = console
         self.mode = mode
+        self.flags = flags
         self.visited = set()
         self.visited_debug = {}
         self.object_registry = {}
-        self.line_number = 0
+        self.line_number = 1
         self.indent=1
 
     def _print(self, *args, **kwargs):
         """
         Wrapper for console.print that tracks line numbers.
         """
-        # Count newlines in the output to track line numbers
-        # This is a simplified version - you might need more sophisticated counting
+        if self.flags & Flags.PRINT_LINE_NUMBERS:
+            self.console.print(f"{self.line_number:>8}: ", end='')
+        self.console.print(*args, **kwargs)
 
+        # Count newlines in the output to track line numbers
         text = str(args[0])
         self.line_number += str(args[0]).count('\n')
         if kwargs.get('end', '\n') == '\n':
             self.line_number += 1
-        self._print(*args, **kwargs)
 
-    def _default_better_repr(self, object):
+    def _better_repr_core(self, object):
         """Enhanced representation with different modes"""
         indent_str = " " * self.indent * Settings.INDENT_INCREMENT
         # Handle circular references
@@ -43,8 +50,8 @@ class BetterRepr:
             return
 
         self.visited.add(obj_id)
-        self.visited_debug[obj_id] = f"{type(self).__name__} at indent {indent}"
-        # self._print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {indent}")
+        self.visited_debug[obj_id] = f"{type(self).__name__} at indent {self.indent}"
+        # self._print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {self.indent}")
 
         if self.indent > Settings.MAX_DEPTH:
             self._print(f"{indent_str}  <max depth reached>")
@@ -52,19 +59,19 @@ class BetterRepr:
             del self.visited_debug[obj_id]
             return
 
-        self.print(f"{type(self).__name__}")
+        self._print(f"{type(self).__name__}")
         if self.mode == DumpMode.DATA:
-            self._dump_data_attributes(self, object)
+            self._dump_data_attributes(object)
         elif self.mode == DumpMode.METHODS:
-            self._dump_methods_only(self, object)
+            self._dump_methods_only(object)
 
         self.visited.discard(obj_id)
         del self.visited_debug[obj_id]
 
     def _dump_methods_only(self, object):
         """Show only methods, no recursion"""
-        indent_str0 = " " * (indent + 0) * Settings.INDENT_INCREMENT
-        indent_str1 = " " * (indent + 1) * Settings.INDENT_INCREMENT
+        indent_str0 = " " * (self.indent + 0) * Settings.INDENT_INCREMENT
+        indent_str1 = " " * (self.indent + 1) * Settings.INDENT_INCREMENT
         attrs = {}
         if hasattr(object, '__dict__'):
             attrs.update(object.__dict__)
@@ -78,30 +85,30 @@ class BetterRepr:
                         pass
         method_attrs = {k: v for k, v in attrs.items() if callable(v)}
         if method_attrs:
-            self.print(indent_str0 + f"[Methods: {len(method_attrs)}]")
+            self._print(indent_str0 + f"[Methods: {len(method_attrs)}]")
             for name in sorted(method_attrs.keys()):
-                self.print(indent_str1 + name)
+                self._print(indent_str1 + name)
 
     def _dump_data_attributes(self, object):
         """Show only data attributes with full recursion"""
-        indent_str = " " * indent * Settings.INDENT_INCREMENT
+        indent_str = " " * self.indent * Settings.INDENT_INCREMENT
         attrs = {}
 
         # Get instance attributes
-        if hasattr(self, '__dict__'):
+        if hasattr(object, '__dict__'):
             # self._print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
-            attrs.update(self.__dict__)
+            attrs.update(object.__dict__)
 
         # Debug: show what dir() finds
-        dir_attrs = [name for name in dir(self) if not name.startswith('_') and name not in attrs]
+        dir_attrs = [name for name in dir(object) if not name.startswith('_') and name not in attrs]
         #if dir_attrs:
         #    self._print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
-        for name in dir(self):
+        for name in dir(object):
             if name not in attrs and not name.startswith('_'):
                 try:
-                    attrs[name] = getattr(self, name)
+                    attrs[name] = getattr(object, name)
                 except Exception:
                     pass
 
@@ -189,11 +196,11 @@ class BetterRepr:
 
             if isinstance(v, dict):
                 self.indent += 1
-                _dump_dict(self, k, v)
+                self._dump_dict(k, v)
                 self.indent -= 1
             elif isinstance(v, (list, tuple, set, frozenset)):
                 self.indent += 1
-                _dump_collection(self, k, v)
+                self._dump_collection(k, v)
                 self.indent -= 1
             elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
                 self._print(f"{indent_str1}{k}: ", end='')
@@ -236,11 +243,11 @@ class BetterRepr:
         for item in value:
             if isinstance(item, dict):
                 self.indent += 1
-                self._dump_dict(self, None, item)
+                self._dump_dict(None, item)
                 self.indent -= 1
             elif isinstance(item, (list, tuple, set, frozenset)):
                 self.indent += 1
-                self._dump_collection(self, None, item)
+                self._dump_collection(None, item)
                 self.indent -= 1
             elif hasattr(item, '__better_repr__') and callable(getattr(item, '__better_repr__')):
                 # For items with custom __better_repr__, we don't print a name since they're list elements

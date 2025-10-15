@@ -95,8 +95,8 @@ class Package(Task):
     _use_conditional_misc_keys = ("LICENSE", "PROPERTIES", "RESTRICT")
     UNKNOWN_REPO = _unknown_repo
 
-    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, **kwargs):
         metadata = _PackageMetadataWrapperBase(kwargs.pop("metadata"))
@@ -611,8 +611,8 @@ class Package(Task):
         # Share identical frozenset instances when available.
         _frozensets = {}
 
-        def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-            portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+        def __better_repr__(self, context):
+            context._better_repr_core(self)
 
         def __init__(self, pkg, enabled_flags):
             self._pkg = pkg
@@ -732,8 +732,8 @@ class Package(Task):
             "tokens",
         )
 
-        def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-            portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+        def __better_repr__(self, context):
+            context._better_repr_core(self)
 
         def __init__(self, pkg, tokens, iuse_implicit_match, eapi):
             self._pkg = pkg
@@ -879,8 +879,8 @@ class _PackageMetadataWrapper(_PackageMetadataWrapperBase):
         ]
     )
 
-    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, pkg, metadata):
         _PackageMetadataWrapperBase.__init__(self)

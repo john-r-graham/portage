@@ -96,5 +96,5 @@ class DepPriority(AbstractDepPriority):
         # Construct the final string with proper newlines and indentation
         return f"DepPriority({attr_repr})"
 
-    def __better_repr__(self, console, indent=1, mode=portage.better_repr.DumpMode.DATA, visited=None, visited_debug=None):
-        portage.better_repr.default_better_repr(self, console, indent, mode, visited, visited_debug)
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
