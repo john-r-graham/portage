@@ -14,64 +14,64 @@ class Flags:
     DUMP_METHODS       = 4
 
 class BetterRepr:
-    def __init__(self, console, mode=DumpMode.DATA, flags=0):
-        self.console = console
-        self.mode = mode
-        self.flags = flags
-        self.visited = set()
-        self.visited_debug = {}
-        self.object_registry = {}
-        self.line_number = 1
-        self.indent=1
+    def __init__(context, console, mode=DumpMode.DATA, flags=0):
+        context.console = console
+        context.mode = mode
+        context.flags = flags
+        context.visited = set()
+        context.visited_debug = {}
+        context.object_registry = {}
+        context.line_number = 1
+        context.indent=1
 
-    def _print(self, *args, **kwargs):
+    def _print(context, *args, **kwargs):
         """
         Wrapper for console.print that tracks line numbers.
         """
-        if self.flags & Flags.PRINT_LINE_NUMBERS:
-            self.console.print(f"{self.line_number:>8}: ", end='')
-        self.console.print(*args, **kwargs)
+        if context.flags & Flags.PRINT_LINE_NUMBERS:
+            context.console.print(f"{context.line_number:>8}: ", end='')
+        context.console.print(*args, **kwargs)
 
         # Count newlines in the output to track line numbers
         text = str(args[0])
-        self.line_number += str(args[0]).count('\n')
+        context.line_number += str(args[0]).count('\n')
         if kwargs.get('end', '\n') == '\n':
-            self.line_number += 1
+            context.line_number += 1
 
-    def _better_repr_core(self, object):
+    def _better_repr_core(context, object):
         """Enhanced representation with different modes"""
-        indent_str = " " * self.indent * Settings.INDENT_INCREMENT
+        indent_str = " " * context.indent * Settings.INDENT_INCREMENT
         # Handle circular references
         obj_id = id(object)
-        # self._print(f"DEBUG [__better_repr__]: Checking cycle for {type(self).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
-        if obj_id in self.visited:
-            self._print(indent_str + f"<cycle detected> - object ID {obj_id}")
-            # self._print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
+        # context._print(f"DEBUG [__better_repr__]: Checking cycle for {type(context).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
+        if obj_id in context.visited:
+            context._print(indent_str + f"<cycle detected> - object ID {obj_id}")
+            # context._print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
             return
 
-        self.visited.add(obj_id)
-        self.visited_debug[obj_id] = f"{type(self).__name__} at indent {self.indent}"
-        # self._print(f"DEBUG: Added {type(self).__name__} (ID {obj_id}) to visited set at indent {self.indent}")
+        context.visited.add(obj_id)
+        context.visited_debug[obj_id] = f"{type(context).__name__} at indent {context.indent}"
+        # context._print(f"DEBUG: Added {type(context).__name__} (ID {obj_id}) to visited set at indent {context.indent}")
 
-        if self.indent > Settings.MAX_DEPTH:
-            self._print(f"{indent_str}  <max depth reached>")
-            self.visited.discard(obj_id)
-            del self.visited_debug[obj_id]
+        if context.indent > Settings.MAX_DEPTH:
+            context._print(f"{indent_str}  <max depth reached>")
+            context.visited.discard(obj_id)
+            del context.visited_debug[obj_id]
             return
 
-        self._print(f"{type(self).__name__}")
-        if self.mode == DumpMode.DATA:
-            self._dump_data_attributes(object)
-        elif self.mode == DumpMode.METHODS:
-            self._dump_methods_only(object)
+        context._print(f"{type(object).__name__}")
+        if context.mode == DumpMode.DATA:
+            context._dump_data_attributes(object)
+        elif context.mode == DumpMode.METHODS:
+            context._dump_methods_only(object)
 
-        self.visited.discard(obj_id)
-        del self.visited_debug[obj_id]
+        context.visited.discard(obj_id)
+        del context.visited_debug[obj_id]
 
-    def _dump_methods_only(self, object):
+    def _dump_methods_only(context, object):
         """Show only methods, no recursion"""
-        indent_str0 = " " * (self.indent + 0) * Settings.INDENT_INCREMENT
-        indent_str1 = " " * (self.indent + 1) * Settings.INDENT_INCREMENT
+        indent_str0 = " " * (context.indent + 0) * Settings.INDENT_INCREMENT
+        indent_str1 = " " * (context.indent + 1) * Settings.INDENT_INCREMENT
         attrs = {}
         if hasattr(object, '__dict__'):
             attrs.update(object.__dict__)
@@ -85,24 +85,24 @@ class BetterRepr:
                         pass
         method_attrs = {k: v for k, v in attrs.items() if callable(v)}
         if method_attrs:
-            self._print(indent_str0 + f"[Methods: {len(method_attrs)}]")
+            context._print(indent_str0 + f"[Methods: {len(method_attrs)}]")
             for name in sorted(method_attrs.keys()):
-                self._print(indent_str1 + name)
+                context._print(indent_str1 + name)
 
-    def _dump_data_attributes(self, object):
+    def _dump_data_attributes(context, object):
         """Show only data attributes with full recursion"""
-        indent_str = " " * self.indent * Settings.INDENT_INCREMENT
+        indent_str = " " * context.indent * Settings.INDENT_INCREMENT
         attrs = {}
 
         # Get instance attributes
         if hasattr(object, '__dict__'):
-            # self._print(indent_str + f"Found __dict__ with keys: {list(self.__dict__.keys())}")
+            # context._print(indent_str + f"Found __dict__ with keys: {list(context.__dict__.keys())}")
             attrs.update(object.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(object) if not name.startswith('_') and name not in attrs]
         #if dir_attrs:
-        #    self._print(indent_str + f"Additional dir() attributes: {dir_attrs}")
+        #    context._print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(object):
@@ -118,16 +118,16 @@ class BetterRepr:
             if not callable(v):
                 data_attrs[k] = v
             # else:
-            #     self._print(indent_str + f"Skipping callable: {k}")
+            #     context._print(indent_str + f"Skipping callable: {k}")
 
-        # self._print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        # context._print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
-            self._dump_attr(name, value)
+            context._dump_attr(name, value)
 
-    def _dump_attr(self, name, value):
+    def _dump_attr(context, name, value):
         """Dump individual attributes with special handling"""
-        indent_str = " " * self.indent * Settings.INDENT_INCREMENT
+        indent_str = " " * context.indent * Settings.INDENT_INCREMENT
 
         # Check for circular references
         obj_id = id(value)
@@ -136,47 +136,47 @@ class BetterRepr:
         # Skip cycle detection for certain immutable/cached types
         if not (obj_type in (bool, type(None)) or 
                 (obj_type == int and -5 <= value <= 256)):
-            if obj_id in self.visited:
-                self._print(indent_str + f"{name}: <cycle detected for {obj_type.__name__} object>")
+            if obj_id in context.visited:
+                context._print(indent_str + f"{name}: <cycle detected for {obj_type.__name__} object>")
                 return
 
         # if name in ("metadata", "allowed_keys"):
-        #     self._print(indent_str + f"DEBUG: {name} is a {obj_type}")
+        #     context._print(indent_str + f"DEBUG: {name} is a {obj_type}")
 
         # Check for custom __better_repr__ method first
         if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
             # Don't print the type name, just the attribute name and colon
-            self._print(indent_str + f"{name}: ", end='')
+            context._print(indent_str + f"{name}: ", end='')
             # Pass indent + 1 so nested content is properly indented
-            value.__better_repr__(self)
+            value.__better_repr__(context)
             return
 
         # Handle collections that need multi-line formatting
         if isinstance(value, dict):
-            self._dump_dict(name, value)
+            context._dump_dict(name, value)
             return
         elif isinstance(value, (list, tuple, set, frozenset)):
-            self._dump_collection(name, value)
+            context._dump_collection(name, value)
             return
 
         # Handle basic cases
-        self._print(indent_str + f"{name}: {repr(value)}")
+        context._print(indent_str + f"{name}: {repr(value)}")
 
-    def _dump_dict(self, name, value):
-        indent_str0 = " " * (self.indent + 0) * Settings.INDENT_INCREMENT
-        indent_str1 = " " * (self.indent + 1) * Settings.INDENT_INCREMENT
+    def _dump_dict(context, name, value):
+        indent_str0 = " " * (context.indent + 0) * Settings.INDENT_INCREMENT
+        indent_str1 = " " * (context.indent + 1) * Settings.INDENT_INCREMENT
 
         name_str = f"{name}: " if name is not None else ""
 
         if not value:  # Empty dict
-            self._print(f"{indent_str0}{name_str}dict {{}}")
+            context._print(f"{indent_str0}{name_str}dict {{}}")
             return
 
-        self._print(f"{indent_str0}{name_str}dict {{")
+        context._print(f"{indent_str0}{name_str}dict {{")
 
-        if self.indent >= Settings.MAX_DEPTH:
-            self._print(f"{indent_str0}  <max depth reached>")
-            self._print(f"{indent_str0} }}")
+        if context.indent >= Settings.MAX_DEPTH:
+            context._print(f"{indent_str0}  <max depth reached>")
+            context._print(f"{indent_str0} }}")
             return
 
         for k, v in value.items():
@@ -195,26 +195,26 @@ class BetterRepr:
             k=f"{prefix}{repr(k)}"
 
             if isinstance(v, dict):
-                self.indent += 1
-                self._dump_dict(k, v)
-                self.indent -= 1
+                context.indent += 1
+                context._dump_dict(k, v)
+                context.indent -= 1
             elif isinstance(v, (list, tuple, set, frozenset)):
-                self.indent += 1
-                self._dump_collection(k, v)
-                self.indent -= 1
+                context.indent += 1
+                context._dump_collection(k, v)
+                context.indent -= 1
             elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
-                self._print(f"{indent_str1}{k}: ", end='')
-                self.indent += 2
-                v.__better_repr__(self)
-                self.indent -= 2
+                context._print(f"{indent_str1}{k}: ", end='')
+                context.indent += 2
+                v.__better_repr__(context)
+                context.indent -= 2
             else:
-                self._print(f"{indent_str1}{k}: {v}")
+                context._print(f"{indent_str1}{k}: {v}")
 
-        self._print(indent_str0 + "}")
+        context._print(indent_str0 + "}")
 
-    def _dump_collection(self, name, value):
-        indent_str0 = " " * (self.indent + 0) * Settings.INDENT_INCREMENT
-        indent_str1 = " " * (self.indent + 1) * Settings.INDENT_INCREMENT
+    def _dump_collection(context, name, value):
+        indent_str0 = " " * (context.indent + 0) * Settings.INDENT_INCREMENT
+        indent_str1 = " " * (context.indent + 1) * Settings.INDENT_INCREMENT
 
         # Use appropriate brackets based on collection type
         if isinstance(value, list):
@@ -230,32 +230,32 @@ class BetterRepr:
         name_str = f"{name}: " if name is not None else ""
 
         if not value:  # Empty collection
-            self._print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}{close_delim}")
+            context._print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}{close_delim}")
             return
 
-        self._print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}")
+        context._print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}")
 
-        if self.indent >= Settings.MAX_DEPTH:
-            self._print(f"{indent_str0}  <max depth reached>")
-            self._print(f"{indent_str0}{close_delim}")
+        if context.indent >= Settings.MAX_DEPTH:
+            context._print(f"{indent_str0}  <max depth reached>")
+            context._print(f"{indent_str0}{close_delim}")
             return
 
         for item in value:
             if isinstance(item, dict):
-                self.indent += 1
-                self._dump_dict(None, item)
-                self.indent -= 1
+                context.indent += 1
+                context._dump_dict(None, item)
+                context.indent -= 1
             elif isinstance(item, (list, tuple, set, frozenset)):
-                self.indent += 1
-                self._dump_collection(None, item)
-                self.indent -= 1
+                context.indent += 1
+                context._dump_collection(None, item)
+                context.indent -= 1
             elif hasattr(item, '__better_repr__') and callable(getattr(item, '__better_repr__')):
                 # For items with custom __better_repr__, we don't print a name since they're list elements
-                self._print(f"{indent_str1}", end='')
-                self.indent += 2
-                item.__better_repr__(self)
-                self.indent -= 2
+                context._print(f"{indent_str1}", end='')
+                context.indent += 2
+                item.__better_repr__(context)
+                context.indent -= 2
             else:
-                self._print(f"{indent_str1}{repr(item)}")
+                context._print(f"{indent_str1}{repr(item)}")
 
-        self._print(f"{indent_str0}{close_delim}")
+        context._print(f"{indent_str0}{close_delim}")

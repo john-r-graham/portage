@@ -11461,9 +11461,10 @@ class depgraph:
         with open(logname, "w") as file:
             # writemsg("Hello from _dump_depgraph().\n", fd=file)
             console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
-            console.print("Hello from _dump_depgraph().")
-            console.print("Data:")
-            portage.better_repr.BetterRepr(console, flags=portage.better_repr.Flags.PRINT_LINE_NUMBERS)._better_repr_core(self)
+            context = portage.better_repr.BetterRepr(console, flags=portage.better_repr.Flags.PRINT_LINE_NUMBERS)
+            context._print("Hello from _dump_depgraph().")
+            context._print("Data:")
+            context._better_repr_core(self)
         self._depgraph_dump_count += 1
 
     def __better_repr__(self, context):
