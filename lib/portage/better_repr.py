@@ -9,9 +9,10 @@ class Settings:
     MAX_DEPTH=16
 
 class Flags:
-    PRINT_LINE_NUMBERS = 1
-    DUMP_DATA          = 2
-    DUMP_METHODS       = 4
+    PRINT_LINE_NUMBERS    = 1
+    NO_PRINT_LINE_NUMBERS = 2
+    DUMP_DATA             = 4
+    DUMP_METHODS          = 8
 
 class BetterRepr:
     def __init__(context, console, mode=DumpMode.DATA, flags=0):
