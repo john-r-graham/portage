@@ -2,10 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 # JRG debugging:
-from rich.console import Console
 import portage.better_repr
-from portage.data import portage_gid, portage_uid, secpass
-from portage.util import apply_permissions
 
 import errno
 import functools
@@ -5600,8 +5597,7 @@ class depgraph:
 
         # JRG: resolver-instrumentation FEATURE:
         if "resolver-instrumentation" in self._frozen_config.settings.features:
-            self._dump_depgraph("raw")
-
+            portage.better_repr.dump_object(self._frozen_config.settings, self, "depgraph-dump-raw")
         # We're true here unless we are missing binaries.
         return (True, myfavorites)
 
@@ -11447,32 +11443,6 @@ class depgraph:
 
     def get_backtrack_infos(self):
         return self._dynamic_config._backtrack_infos
-
-    def _dump_depgraph(self, description):
-        settings = self._frozen_config.settings
-        if settings.get("PORTAGE_LOGDIR"):
-            logdir = normalize_path(settings["PORTAGE_LOGDIR"])
-        else:
-            logdir = os.path.join(os.sep, settings["BROOT"].lstrip(os.sep), "var", "log", "portage")
-        timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
-        suffix = chr(ord('a') + self._depgraph_dump_count)
-        logname = os.path.join(
-            logdir,
-            f"depgraph-dump-{description}-{timestamp}{suffix}.log"
-        )
-        with open(logname, "w") as file:
-            apply_permissions(logname, uid=portage_uid, gid=portage_gid)
-            # writemsg("Hello from _dump_depgraph().\n", fd=file)
-            console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
-            context = portage.better_repr.BetterRepr(console, flags=portage.better_repr.Flags.PRINT_LINE_NUMBERS)
-            context._print("Hello from _dump_depgraph().")
-            context._print("Data:")
-            # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
-            # initial displayed type (the type of "self"), we need to display the line number here for the
-            # very first call.
-            context._print("", end='')
-            self.__better_repr__(context)
-        self._depgraph_dump_count += 1
 
     def __better_repr__(self, context):
         context._better_repr_core(self)

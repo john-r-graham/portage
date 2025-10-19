@@ -1,4 +1,10 @@
+import time
+
 from enum import Enum
+from rich.console import Console
+from portage import os
+from portage.data import portage_gid, portage_uid
+from portage.util import apply_permissions, normalize_path
 
 class DumpMode(Enum):
     DATA = 'data'
@@ -10,9 +16,8 @@ class Settings:
 
 class Flags:
     PRINT_LINE_NUMBERS    = 1
-    NO_PRINT_LINE_NUMBERS = 2
-    DUMP_DATA             = 4
-    DUMP_METHODS          = 8
+    DUMP_DATA             = 2
+    DUMP_METHODS          = 4
 
 class BetterRepr:
     def __init__(context, console, mode=DumpMode.DATA, flags=0):
@@ -260,3 +265,26 @@ class BetterRepr:
                 context._print(f"{indent_str1}{repr(item)}")
 
         context._print(f"{indent_str0}{close_delim}")
+
+def dump_object(settings, object, log_name_prefix=None):
+    if settings.get("PORTAGE_LOGDIR"):
+        logdir = normalize_path(settings["PORTAGE_LOGDIR"])
+    else:
+        logdir = os.path.join(os.sep, settings["BROOT"].lstrip(os.sep), "var", "log", "portage")
+    timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
+    if log_name_prefix is None:
+        log_name_prefix=f"{type(object).__name__}-dump"
+    # suffix = chr(ord('a') + self._depgraph_dump_count)
+    suffix=""
+    logname = os.path.join(logdir, f"{log_name_prefix}-{timestamp}{suffix}.log")
+    with open(logname, "w") as file:
+        apply_permissions(logname, uid=portage_uid, gid=portage_gid)
+        # writemsg("Hello from _dump_depgraph().\n", fd=file)
+        console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
+        context = BetterRepr(console, flags=Flags.PRINT_LINE_NUMBERS)
+        # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
+        # initial displayed type (the type of "self"), we need to display the line number here for the
+        # very first call.
+        context._print("", end='')
+        object.__better_repr__(context)
+    # self._depgraph_dump_count += 1
