@@ -25,22 +25,20 @@ class BetterRepr:
         context.line_number = 1
         context.indent=1
 
-    def _print(context, *args, **kwargs):
+    def _print(context, *args, no_line_number=False, **kwargs):
         """
         Wrapper for console.print that tracks line numbers.
         """
-        if context.flags & Flags.PRINT_LINE_NUMBERS:
+        if context.flags & Flags.PRINT_LINE_NUMBERS and not no_line_number:
             context.console.print(f"{context.line_number:>8}: ", end='')
         context.console.print(*args, **kwargs)
 
         # Count newlines in the output to track line numbers
-        text = str(args[0])
         context.line_number += str(args[0]).count('\n')
         if kwargs.get('end', '\n') == '\n':
             context.line_number += 1
 
     def _better_repr_core(context, object):
-        """Enhanced representation with different modes"""
         indent_str = " " * context.indent * Settings.INDENT_INCREMENT
         # Handle circular references
         obj_id = id(object)
@@ -60,7 +58,7 @@ class BetterRepr:
             del context.visited_debug[obj_id]
             return
 
-        context._print(f"{type(object).__name__}")
+        context._print(f"{type(object).__name__}", no_line_number=True)
         if context.mode == DumpMode.DATA:
             context._dump_data_attributes(object)
         elif context.mode == DumpMode.METHODS:
@@ -149,7 +147,9 @@ class BetterRepr:
             # Don't print the type name, just the attribute name and colon
             context._print(indent_str + f"{name}: ", end='')
             # Pass indent + 1 so nested content is properly indented
+            context.indent += 1
             value.__better_repr__(context)
+            context.indent -= 1
             return
 
         # Handle collections that need multi-line formatting
