@@ -1,8 +1,8 @@
 import time
 
-from enum import Enum
+from enum         import Enum
 from rich.console import Console
-from portage import os
+from portage      import os
 from portage.data import portage_gid, portage_uid
 from portage.util import apply_permissions, normalize_path
 
@@ -18,6 +18,10 @@ class Flags:
     PRINT_LINE_NUMBERS    = 1
     DUMP_DATA             = 2
     DUMP_METHODS          = 4
+    SHOW_OBJECT_IDS       = 8
+
+def _is_primitive(object):
+    return isinstance(object, (int, float, bool, str, bytes, complex, type(None)))
 
 class BetterRepr:
     def __init__(context, console, mode=DumpMode.DATA, flags=0):
@@ -63,7 +67,9 @@ class BetterRepr:
             del context.visited_debug[obj_id]
             return
 
-        context._print(f"{type(object).__name__}", no_line_number=True)
+        obj_id_str = f"id {obj_id} " if context.flags & Flags.SHOW_OBJECT_IDS else ""
+
+        context._print(f"{type(object).__name__} {obj_id_str}(br)", no_line_number=True)
         if context.mode == DumpMode.DATA:
             context._dump_data_attributes(object)
         elif context.mode == DumpMode.METHODS:
@@ -97,6 +103,13 @@ class BetterRepr:
         """Show only data attributes with full recursion"""
         indent_str = " " * context.indent * Settings.INDENT_INCREMENT
         attrs = {}
+
+        if not _is_primitive(object):
+            if obj_id := id(object) in context.object_registry:
+                context._print(f"; duplicate (1); see line {context.object_registry[obj_id]}", no_line_number=True)
+                return
+            else:
+                context.object_registry[obj_id] = context.line_number
 
         # Get instance attributes
         if hasattr(object, '__dict__'):
@@ -178,7 +191,16 @@ class BetterRepr:
             context._print(f"{indent_str0}{name_str}dict {{}}")
             return
 
-        context._print(f"{indent_str0}{name_str}dict {{")
+        obj_id = id(value)
+        obj_id_str = f"id {obj_id}" if context.flags & Flags.SHOW_OBJECT_IDS else ""
+        context._print(f"{indent_str0}{name_str}dict {obj_id_str}", end='')
+        if obj_id in context.object_registry:
+            context._print(f"; duplicate (2); see line {context.object_registry[obj_id]}", no_line_number=True)
+            return
+        else:
+            context.object_registry[obj_id] = context.line_number
+
+        context._print(f" {{", no_line_number=True)
 
         if context.indent >= Settings.MAX_DEPTH:
             context._print(f"{indent_str0}  <max depth reached>")
@@ -187,18 +209,18 @@ class BetterRepr:
 
         for k, v in value.items():
             if isinstance(k, list):
-                prefix = "list"
+                prefix = "list "
             elif isinstance(k, tuple):
-                prefix = "tuple"
+                prefix = "tuple "
             elif isinstance(k, set):
-                prefix = "set"
+                prefix = "set "
             elif isinstance(k, frozenset):
-                prefix = "frozenset"
+                prefix = "frozenset "
             elif isinstance(k, dict):
-                prefix = "dict"
+                prefix = "dict "
             else:
                 prefix = ""
-            k=f"{prefix}{repr(k)}"
+            k=f"{prefix} {repr(k)}"
 
             if isinstance(v, dict):
                 context.indent += 1
@@ -214,7 +236,8 @@ class BetterRepr:
                 v.__better_repr__(context)
                 context.indent -= 2
             else:
-                context._print(f"{indent_str1}{k}: {v}")
+                obj_id_str = f"id {id(v)}" if context.flags & Flags.SHOW_OBJECT_IDS and not _is_primitive(v) else ""
+                context._print(f"{indent_str1}{k}: {v} {obj_id_str}")
 
         context._print(indent_str0 + "}")
 
@@ -239,7 +262,17 @@ class BetterRepr:
             context._print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}{close_delim}")
             return
 
-        context._print(f"{indent_str0}{name_str}{type(value).__name__} {open_delim}")
+        obj_id = id(value)
+        obj_id_str = f"id {obj_id}" if context.flags & Flags.SHOW_OBJECT_IDS else ""
+        context._print(f"{indent_str0}{name_str}{type(value).__name__} {obj_id_str}", end='')
+
+        if obj_id in context.object_registry:
+            context._print(f"; duplicate (3); see line {context.object_registry[obj_id]}", no_line_number=True)
+            return
+        else:
+            context.object_registry[obj_id] = context.line_number
+
+        context._print(f" {open_delim}", no_line_number=True)
 
         if context.indent >= Settings.MAX_DEPTH:
             context._print(f"{indent_str0}  <max depth reached>")
@@ -281,7 +314,11 @@ def dump_object(settings, object, log_name_prefix=None):
         apply_permissions(logname, uid=portage_uid, gid=portage_gid)
         # writemsg("Hello from _dump_depgraph().\n", fd=file)
         console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
-        context = BetterRepr(console, flags=Flags.PRINT_LINE_NUMBERS)
+        context = BetterRepr(console,
+                             flags=
+                             Flags.PRINT_LINE_NUMBERS |
+                             Flags.SHOW_OBJECT_IDS
+                             )
         # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
         # initial displayed type (the type of "self"), we need to display the line number here for the
         # very first call.
