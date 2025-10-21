@@ -7,8 +7,8 @@ from portage.data import portage_gid, portage_uid
 from portage.util import apply_permissions, normalize_path
 
 class DumpMode(Enum):
-    DATA = 'data'
-    METHODS = 'methods'
+    DATA = "data"
+    METHODS = "methods"
 
 class Settings:
     INDENT_INCREMENT = 4
@@ -39,12 +39,12 @@ class BetterRepr:
         Wrapper for console.print that tracks line numbers.
         """
         if context.flags & Flags.PRINT_LINE_NUMBERS and not no_line_number:
-            context.console.print(f"{context.line_number:>8}: ", end='')
+            context.console.print(f"{context.line_number:>8}: ", end="")
         context.console.print(*args, **kwargs)
 
         # Count newlines in the output to track line numbers
-        context.line_number += str(args[0]).count('\n')
-        if kwargs.get('end', '\n') == '\n':
+        context.line_number += str(args[0]).count("\n")
+        if kwargs.get("end", "\n") == "\n":
             context.line_number += 1
 
     def _better_repr_core(context, object):
@@ -54,7 +54,7 @@ class BetterRepr:
         # context._print(f"DEBUG [__better_repr__]: Checking cycle for {type(context).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in context.visited:
             context._print(indent_str + f"<cycle detected> - object ID {obj_id}")
-            # context._print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, 'Unknown')}")
+            # context._print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, "Unknown")}")
             return
 
         context.visited.add(obj_id)
@@ -83,11 +83,11 @@ class BetterRepr:
         indent_str0 = " " * (context.indent + 0) * Settings.INDENT_INCREMENT
         indent_str1 = " " * (context.indent + 1) * Settings.INDENT_INCREMENT
         attrs = {}
-        if hasattr(object, '__dict__'):
+        if hasattr(object, "__dict__"):
             attrs.update(object.__dict__)
         # Get methods from dir() too, but avoid internal double-underscore methods
         for name in dir(object):
-            if not name.startswith('__') or name in ['__init__', '__str__', '__repr__']:
+            if not name.startswith("__") or name in ["__init__", "__str__", "__repr__"]:
                 if name not in attrs:
                     try:
                         attrs[name] = getattr(object, name)
@@ -112,18 +112,18 @@ class BetterRepr:
                 context.object_registry[obj_id] = context.line_number
 
         # Get instance attributes
-        if hasattr(object, '__dict__'):
+        if hasattr(object, "__dict__"):
             # context._print(indent_str + f"Found __dict__ with keys: {list(context.__dict__.keys())}")
             attrs.update(object.__dict__)
 
         # Debug: show what dir() finds
-        dir_attrs = [name for name in dir(object) if not name.startswith('_') and name not in attrs]
+        dir_attrs = [name for name in dir(object) if not name.startswith("_") and name not in attrs]
         #if dir_attrs:
         #    context._print(indent_str + f"Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(object):
-            if name not in attrs and not name.startswith('_'):
+            if name not in attrs and not name.startswith("_"):
                 try:
                     attrs[name] = getattr(object, name)
                 except Exception:
@@ -161,9 +161,9 @@ class BetterRepr:
         #     context._print(indent_str + f"DEBUG: {name} is a {obj_type}")
 
         # Check for custom __better_repr__ method first
-        if hasattr(value, '__better_repr__') and callable(getattr(value, '__better_repr__')):
+        if hasattr(value, "__better_repr__") and callable(getattr(value, "__better_repr__")):
             # Don't print the type name, just the attribute name and colon
-            context._print(indent_str + f"{name}: ", end='')
+            context._print(indent_str + f"{name}: ", end="")
             # Pass indent + 1 so nested content is properly indented
             context.indent += 1
             value.__better_repr__(context)
@@ -193,7 +193,7 @@ class BetterRepr:
 
         obj_id = id(value)
         obj_id_str = f"id {obj_id}" if context.flags & Flags.SHOW_OBJECT_IDS else ""
-        context._print(f"{indent_str0}{name_str}dict {obj_id_str}", end='')
+        context._print(f"{indent_str0}{name_str}dict {obj_id_str}", end="")
         if obj_id in context.object_registry:
             context._print(f"; duplicate (2); see line {context.object_registry[obj_id]}", no_line_number=True)
             return
@@ -230,8 +230,8 @@ class BetterRepr:
                 context.indent += 1
                 context._dump_collection(k, v)
                 context.indent -= 1
-            elif hasattr(v, '__better_repr__') and callable(getattr(v, '__better_repr__')):
-                context._print(f"{indent_str1}{k}: ", end='')
+            elif hasattr(v, "__better_repr__") and callable(getattr(v, "__better_repr__")):
+                context._print(f"{indent_str1}{k}: ", end="")
                 context.indent += 2
                 v.__better_repr__(context)
                 context.indent -= 2
@@ -264,7 +264,7 @@ class BetterRepr:
 
         obj_id = id(value)
         obj_id_str = f"id {obj_id}" if context.flags & Flags.SHOW_OBJECT_IDS else ""
-        context._print(f"{indent_str0}{name_str}{type(value).__name__} {obj_id_str}", end='')
+        context._print(f"{indent_str0}{name_str}{type(value).__name__} {obj_id_str}", end="")
 
         if obj_id in context.object_registry:
             context._print(f"; duplicate (3); see line {context.object_registry[obj_id]}", no_line_number=True)
@@ -288,9 +288,9 @@ class BetterRepr:
                 context.indent += 1
                 context._dump_collection(None, item)
                 context.indent -= 1
-            elif hasattr(item, '__better_repr__') and callable(getattr(item, '__better_repr__')):
-                # For items with custom __better_repr__, we don't print a name since they're list elements
-                context._print(f"{indent_str1}", end='')
+            elif hasattr(item, "__better_repr__") and callable(getattr(item, "__better_repr__")):
+                # For items with custom __better_repr__, we don't print a name since they"re list elements
+                context._print(f"{indent_str1}", end="")
                 context.indent += 2
                 item.__better_repr__(context)
                 context.indent -= 2
@@ -307,21 +307,21 @@ def dump_object(settings, object, log_name_prefix=None):
     timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time()))
     if log_name_prefix is None:
         log_name_prefix=f"{type(object).__name__}-dump"
-    # suffix = chr(ord('a') + self._depgraph_dump_count)
+    # suffix = chr(ord("a") + self._depgraph_dump_count)
     suffix=""
     logname = os.path.join(logdir, f"{log_name_prefix}-{timestamp}{suffix}.log")
     with open(logname, "w") as file:
         apply_permissions(logname, uid=portage_uid, gid=portage_gid)
-        # writemsg("Hello from _dump_depgraph().\n", fd=file)
         console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
         context = BetterRepr(console,
                              flags=
                              Flags.PRINT_LINE_NUMBERS |
                              Flags.SHOW_OBJECT_IDS
                              )
+        context._print("Hello from dump_object().")
         # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
         # initial displayed type (the type of "self"), we need to display the line number here for the
         # very first call.
-        context._print("", end='')
+        context._print("", end="")
         object.__better_repr__(context)
     # self._depgraph_dump_count += 1
