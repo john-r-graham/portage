@@ -15,10 +15,10 @@ class Settings:
     MAX_DEPTH=16
 
 class Flags:
-    PRINT_LINE_NUMBERS    = 1
-    DUMP_DATA             = 2
-    DUMP_METHODS          = 4
-    SHOW_OBJECT_IDS       = 8
+    PRINT_LINE_NUMBERS    = 1 # Mostly for debugging the duplicate reporting feature, to ensure that the reported line numbers match the actual ones.
+    DUMP_METHODS          = 2 # Dump class methods.
+    DUMP_DATA             = 4 # Dump class data. Note: Both bits can be set at once.
+    SHOW_OBJECT_IDS       = 8 # Mostly for debugging the duplicate detection logic.
 
 def _is_primitive(object):
     return isinstance(object, (int, float, bool, str, bytes, complex, type(None)))
@@ -321,7 +321,7 @@ def dump_object(settings, object, log_name_prefix=None):
         context._print("Hello from dump_object().")
         # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
         # initial displayed type (the type of "self"), we need to display the line number here for the
-        # very first call.
+        # very first call. When line number printing is disabled, this line prints *nothing*.
         context._print("", end="")
         object.__better_repr__(context)
     # self._depgraph_dump_count += 1
