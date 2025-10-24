@@ -53,7 +53,7 @@ class BetterRepr:
         obj_id = id(object)
         # context._print(f"DEBUG [__better_repr__]: Checking cycle for {type(context).__name__} (ID {obj_id}) - in visited: {obj_id in visited}")
         if obj_id in context.visited:
-            context._print(indent_str + f"<cycle detected> - object ID {obj_id}")
+            context._print(f"{indent_str}<cycle detected> - object ID {obj_id}")
             # context._print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, "Unknown")}")
             return
 
@@ -113,13 +113,13 @@ class BetterRepr:
 
         # Get instance attributes
         if hasattr(object, "__dict__"):
-            # context._print(indent_str + f"Found __dict__ with keys: {list(context.__dict__.keys())}")
+            # context._print(f"{indent_str}Found __dict__ with keys: {list(context.__dict__.keys())}")
             attrs.update(object.__dict__)
 
         # Debug: show what dir() finds
         dir_attrs = [name for name in dir(object) if not name.startswith("_") and name not in attrs]
         #if dir_attrs:
-        #    context._print(indent_str + f"Additional dir() attributes: {dir_attrs}")
+        #    context._print(f"{indent_str}Additional dir() attributes: {dir_attrs}")
 
         # Add other attributes from dir() if needed
         for name in dir(object):
@@ -135,9 +135,9 @@ class BetterRepr:
             if not callable(v):
                 data_attrs[k] = v
             # else:
-            #     context._print(indent_str + f"Skipping callable: {k}")
+            #     context._print(f"{indent_str}Skipping callable: {k}")
 
-        # context._print(indent_str + f"Final data attributes to dump: {list(data_attrs.keys())}")
+        # context._print(f"{indent_str}Final data attributes to dump: {list(data_attrs.keys())}")
 
         for name, value in sorted(data_attrs.items()):
             context._dump_attr(name, value)
@@ -154,16 +154,16 @@ class BetterRepr:
         if not (obj_type in (bool, type(None)) or 
                 (obj_type == int and -5 <= value <= 256)):
             if obj_id in context.visited:
-                context._print(indent_str + f"{name}: <cycle detected for {obj_type.__name__} object>")
+                context._print(f"{indent_str}{name}: <cycle detected for {obj_type.__name__} object>")
                 return
 
         # if name in ("metadata", "allowed_keys"):
-        #     context._print(indent_str + f"DEBUG: {name} is a {obj_type}")
+        #     context._print(f"{indent_str}DEBUG: {name} is a {obj_type}")
 
         # Check for custom __better_repr__ method first
         if hasattr(value, "__better_repr__") and callable(getattr(value, "__better_repr__")):
             # Don't print the type name, just the attribute name and colon
-            context._print(indent_str + f"{name}: ", end="")
+            context._print(f"{indent_str}{name}: ", end="")
             # Pass indent + 1 so nested content is properly indented
             context.indent += 1
             value.__better_repr__(context)
@@ -178,8 +178,9 @@ class BetterRepr:
             context._dump_collection(name, value)
             return
 
-        # Handle basic cases
-        context._print(indent_str + f"{name}: {repr(value)}")
+        # Handle non-special cases; notify that there is no special handling for non-primitive types.
+        default_notification = "" if _is_primitive(value) else f"(br: default handling 1, type \"{type(value).__name__}\")"
+        context._print(f"{indent_str}{name} {default_notification}: {repr(value)}")
 
     def _dump_dict(context, name, value):
         indent_str0 = " " * (context.indent + 0) * Settings.INDENT_INCREMENT
@@ -237,7 +238,9 @@ class BetterRepr:
                 context.indent -= 2
             else:
                 obj_id_str = f"id {id(v)}" if context.flags & Flags.SHOW_OBJECT_IDS and not _is_primitive(v) else ""
-                context._print(f"{indent_str1}{k}: {v} {obj_id_str}")
+                # Handle non-special cases; notify that there is no special handling for non-primitive types.
+                default_notification = "" if _is_primitive(v) else f"(br: default handling 2, type \"{type(v).__name__}\")"
+                context._print(f"{indent_str1}{k} {default_notification}: {repr(v)} {obj_id_str}")
 
         context._print(indent_str0 + "}")
 
@@ -295,7 +298,9 @@ class BetterRepr:
                 item.__better_repr__(context)
                 context.indent -= 2
             else:
-                context._print(f"{indent_str1}{repr(item)}")
+                # Handle non-special cases; notify that there is no special handling for non-primitive types.
+                default_notification = "" if _is_primitive(item) else f"(br: default handling 3, type \"{type(item).__name__}\")"
+                context._print(f"{indent_str1}{default_notification} {repr(item)}")
 
         context._print(f"{indent_str0}{close_delim}")
 
