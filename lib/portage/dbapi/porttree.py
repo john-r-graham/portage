@@ -3,6 +3,9 @@
 
 __all__ = ["close_portdbapi_caches", "FetchlistDict", "portagetree", "portdbapi"]
 
+# JRG debugging:
+import portage.better_repr
+
 import portage
 
 portage.proxy.lazyimport.lazyimport(
@@ -206,6 +209,9 @@ class portdbapi(dbapi):
         if main_repo is None:
             return None
         return main_repo.eclass_db
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, _unused_param=DeprecationWarning, mysettings=None):
         """

@@ -3,6 +3,9 @@
 
 __all__ = ["bindbapi", "binarytree"]
 
+# JRG debugging:
+import portage.better_repr
+
 import portage
 
 portage.proxy.lazyimport.lazyimport(
@@ -100,6 +103,9 @@ class bindbapi(fakedbapi):
         "SIZE",
         "_mtime_",
     )
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, mybintree=None, **kwargs):
         # Always enable multi_instance mode for bindbapi indexing. This

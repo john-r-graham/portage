@@ -1,6 +1,9 @@
 # Copyright 2003-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
+# JRG debugging:
+import portage.better_repr
+
 """deps.py -- Portage dependency resolution functions"""
 
 __all__ = [
@@ -1484,6 +1487,9 @@ class Atom(str):
         def __init__(self, forbid_overlap=False):
             self.overlap = self._overlap(forbid=forbid_overlap)
 
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
+
     def __new__(cls, s, *args, **kwargs):
         return str.__new__(cls, s)
 
@@ -1957,6 +1963,9 @@ class ExtendedAtomDict(portage.cache.mappings.MutableMapping):
     """
 
     __slots__ = ("_extended", "_normal", "_value_class")
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, value_class):
         self._extended = {}

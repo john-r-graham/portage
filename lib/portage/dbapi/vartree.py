@@ -3,6 +3,9 @@
 
 __all__ = ["vardbapi", "vartree", "dblink"] + ["write_contents", "tar_contents"]
 
+# JRG debugging:
+import portage.better_repr
+
 import portage
 
 portage.proxy.lazyimport.lazyimport(
@@ -134,6 +137,9 @@ class vardbapi(dbapi):
     _aux_cache_keys_re = re.compile(r"^NEEDED\..*$")
     _aux_multi_line_re = re.compile(r"^(CONTENTS|NEEDED\..*)$")
     _pkg_str_aux_keys = dbapi._pkg_str_aux_keys + ("BUILD_ID", "BUILD_TIME", "_mtime_")
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(
         self,

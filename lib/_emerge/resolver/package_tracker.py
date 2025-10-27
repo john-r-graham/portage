@@ -1,9 +1,11 @@
 # Copyright 2014-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
+# JRG debugging:
+import portage.better_repr
+
 import bisect
 import collections
-import portage.better_repr
 
 import portage
 
@@ -104,6 +106,9 @@ class PackageTracker:
             already-installed packages. ``self._replacing[cp_key] = [ new_pkg_that_replaced_cp_key... ]``.
     :ivar _replaced_by: ``self.replaced_by[cp_key] == [ replaced_pkg_1, replaced_pkg_2 ]``
     """
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, soname_deps=False):
         """

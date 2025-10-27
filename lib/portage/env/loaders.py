@@ -2,6 +2,9 @@
 # Copyright 2007-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
+# JRG debugging:
+import portage.better_repr
+
 import errno
 import stat
 import portage
@@ -129,6 +132,9 @@ class TestTextLoader(DataLoader):
 
 class FileLoader(DataLoader):
     """Class to access data in files"""
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, filename, validator):
         """
