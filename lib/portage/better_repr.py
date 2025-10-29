@@ -12,7 +12,7 @@ class DumpMode(Enum):
 
 class Settings:
     INDENT_INCREMENT = 4
-    MAX_DEPTH=16
+    MAX_DEPTH=32
 
 class Flags:
     PRINT_LINE_NUMBERS    = 1 # Mostly for debugging the duplicate reporting feature, to ensure that the reported line numbers match the actual ones.
