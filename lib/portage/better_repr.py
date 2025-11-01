@@ -33,12 +33,17 @@ class BetterRepr:
         context.visited_debug = {}
         context.object_registry = {}
         context.line_number = 1
+        context.line_limit = None
         context.indent=1
 
     def _print(context, *args, no_line_number=False, **kwargs):
         """
         Wrapper for console.print that tracks line numbers.
         """
+
+        if context.line_limit != None and context.line_number >= context.line_limit:
+            return
+        
         sep=""
         if not no_line_number:
             if context.flags & Flags.SHOW_LINE_NUMBERS:
@@ -162,7 +167,7 @@ class BetterRepr:
         if not (obj_type in (bool, type(None)) or 
                 (obj_type == int and -5 <= value <= 256)):
             if obj_id in context.visited:
-                context._print(f"{indent_str}{name}: <cycle detected for {obj_type.__name__} object>")
+                context._print(f"{indent_str}{name}: <circular reference detected for {obj_type.__name__} object>")
                 return
 
         # if name in ("metadata", "allowed_keys"):
@@ -312,6 +317,9 @@ class BetterRepr:
 
         context._print(f"{indent_str0}{close_delim}")
 
+    def set_line_limit(context, line_limit):
+        context.line_limit = line_limit
+
 def dump_object(settings, object, log_name_prefix=None):
     if settings.get("PORTAGE_LOGDIR"):
         logdir = normalize_path(settings["PORTAGE_LOGDIR"])
@@ -333,9 +341,12 @@ def dump_object(settings, object, log_name_prefix=None):
                              Flags.SHOW_NESTING_DEPTH
                              )
         context._print("Hello from dump_object().")
+        context.set_line_limit(50000)
+
         # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
         # initial displayed type (the type of "self"), we need to display the line number here for the
         # very first call. When line number printing is disabled, this line prints *nothing*.
         context._print("", end="")
         object.__better_repr__(context)
     # self._depgraph_dump_count += 1
+    
