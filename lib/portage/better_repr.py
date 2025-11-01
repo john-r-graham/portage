@@ -34,7 +34,7 @@ class BetterRepr:
         context.object_registry = {}
         context.line_number = 1
         context.line_limit = None
-        context.indent=1
+        context.indent=0
 
     def _print(context, *args, no_line_number=False, **kwargs):
         """
@@ -43,7 +43,7 @@ class BetterRepr:
 
         if context.line_limit != None and context.line_number >= context.line_limit:
             return
-        
+
         sep=""
         if not no_line_number:
             if context.flags & Flags.SHOW_LINE_NUMBERS:
@@ -61,6 +61,7 @@ class BetterRepr:
             context.line_number += 1
 
     def _better_repr_core(context, object):
+        context.indent += 1
         indent_str = " " * context.indent * Settings.INDENT_INCREMENT
         # Handle circular references
         obj_id = id(object)
@@ -68,6 +69,7 @@ class BetterRepr:
         if obj_id in context.visited:
             context._print(f"{indent_str}<cycle detected> - object ID {obj_id}")
             # context._print(f"DEBUG: First encountered at: {visited_debug.get(obj_id, "Unknown")}")
+            context.indent -= 1
             return
 
         context.visited.add(obj_id)
@@ -78,6 +80,7 @@ class BetterRepr:
             context._print(f"{indent_str}  <max depth reached>")
             context.visited.discard(obj_id)
             del context.visited_debug[obj_id]
+            context.indent -= 1
             return
 
         obj_id_str = f"id {obj_id} " if context.flags & Flags.SHOW_OBJECT_IDS else ""
@@ -90,6 +93,7 @@ class BetterRepr:
 
         context.visited.discard(obj_id)
         del context.visited_debug[obj_id]
+        context.indent -= 1
 
     def _dump_methods_only(context, object):
         """Show only methods, no recursion"""
@@ -178,9 +182,7 @@ class BetterRepr:
             # Don't print the type name, just the attribute name and colon
             context._print(f"{indent_str}{name}: ", end="")
             # Pass indent + 1 so nested content is properly indented
-            context.indent += 1
             value.__better_repr__(context)
-            context.indent -= 1
             return
 
         # Handle collections that need multi-line formatting
@@ -221,6 +223,7 @@ class BetterRepr:
             context._print(f"{indent_str0} }}")
             return
 
+        context.indent += 1
         for k, v in value.items():
             if isinstance(k, list):
                 prefix = "list "
@@ -234,21 +237,15 @@ class BetterRepr:
                 prefix = "dict "
             else:
                 prefix = ""
-            k=f"{prefix} {repr(k)}"
+            k=f"{prefix}{repr(k)}"
 
             if isinstance(v, dict):
-                context.indent += 1
                 context._dump_dict(k, v)
-                context.indent -= 1
             elif isinstance(v, (list, tuple, set, frozenset)):
-                context.indent += 1
                 context._dump_collection(k, v)
-                context.indent -= 1
             elif hasattr(v, "__better_repr__") and callable(getattr(v, "__better_repr__")):
                 context._print(f"{indent_str1}{k}: ", end="")
-                context.indent += 2
                 v.__better_repr__(context)
-                context.indent -= 2
             else:
                 obj_id_str = f"id {id(v)}" if context.flags & Flags.SHOW_OBJECT_IDS and not _is_primitive(v) else ""
                 # Handle non-special cases; notify that there is no special handling for non-primitive types.
@@ -256,6 +253,7 @@ class BetterRepr:
                 context._print(f"{indent_str1}{k} {default_notification}: {repr(v)} {obj_id_str}")
 
         context._print(indent_str0 + "}")
+        context.indent -= 1
 
     def _dump_collection(context, name, value):
         indent_str0 = " " * (context.indent + 0) * Settings.INDENT_INCREMENT
@@ -295,6 +293,7 @@ class BetterRepr:
             context._print(f"{indent_str0}{close_delim}")
             return
 
+        context.indent += 1
         for item in value:
             if isinstance(item, dict):
                 context.indent += 1
@@ -307,15 +306,14 @@ class BetterRepr:
             elif hasattr(item, "__better_repr__") and callable(getattr(item, "__better_repr__")):
                 # For items with custom __better_repr__, we don't print a name since they"re list elements
                 context._print(f"{indent_str1}", end="")
-                context.indent += 2
                 item.__better_repr__(context)
-                context.indent -= 2
             else:
                 # Handle non-special cases; notify that there is no special handling for non-primitive types.
                 default_notification = "" if _is_primitive(item) else f"(br: default handling 3, type \"{type(item).__name__}\")"
                 context._print(f"{indent_str1}{default_notification} {repr(item)}")
 
         context._print(f"{indent_str0}{close_delim}")
+        context.indent -= 1
 
     def set_line_limit(context, line_limit):
         context.line_limit = line_limit
@@ -341,12 +339,12 @@ def dump_object(settings, object, log_name_prefix=None):
                              Flags.SHOW_NESTING_DEPTH
                              )
         context._print("Hello from dump_object().")
-        context.set_line_limit(50000)
+        # context.set_line_limit(10000)
 
         # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
         # initial displayed type (the type of "self"), we need to display the line number here for the
         # very first call. When line number printing is disabled, this line prints *nothing*.
         context._print("", end="")
         object.__better_repr__(context)
-    # self._depgraph_dump_count += 1
-    
+        # self._depgraph_dump_count += 1
+
