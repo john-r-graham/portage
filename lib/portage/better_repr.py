@@ -15,10 +15,11 @@ class Settings:
     MAX_DEPTH=32
 
 class Flags:
-    PRINT_LINE_NUMBERS    = 1 # Mostly for debugging the duplicate reporting feature, to ensure that the reported line numbers match the actual ones.
-    DUMP_METHODS          = 2 # Dump class methods.
-    DUMP_DATA             = 4 # Dump class data. Note: Both bits can be set at once.
-    SHOW_OBJECT_IDS       = 8 # Mostly for debugging the duplicate detection logic.
+    SHOW_LINE_NUMBERS  =  1 # Mostly for debugging the duplicate reporting feature, to ensure that the reported line numbers match the actual ones.
+    DUMP_METHODS       =  2 # Dump class methods.
+    DUMP_DATA          =  4 # Dump class data. Note: Both bits can be set at once.
+    SHOW_OBJECT_IDS    =  8 # Mostly for debugging the duplicate detection logic.
+    SHOW_NESTING_DEPTH = 16 # Show nesting depth.
 
 def _is_primitive(object):
     return isinstance(object, (int, float, bool, str, bytes, complex, type(None)))
@@ -38,8 +39,15 @@ class BetterRepr:
         """
         Wrapper for console.print that tracks line numbers.
         """
-        if context.flags & Flags.PRINT_LINE_NUMBERS and not no_line_number:
-            context.console.print(f"{context.line_number:>8}: ", end="")
+        sep=""
+        if not no_line_number:
+            if context.flags & Flags.SHOW_LINE_NUMBERS:
+                context.console.print(f"{context.line_number:>8}", end="")
+                sep=" "
+            if context.flags & Flags.SHOW_NESTING_DEPTH:
+                context.console.print(f"{sep}{context.indent:>2}", end="")
+            context.console.print(": ", end="")
+
         context.console.print(*args, **kwargs)
 
         # Count newlines in the output to track line numbers
@@ -320,8 +328,9 @@ def dump_object(settings, object, log_name_prefix=None):
         console = Console(file=file, color_system=None, force_terminal=True, width=256, tab_size=4)
         context = BetterRepr(console,
                              flags=
-                             Flags.PRINT_LINE_NUMBERS |
-                             Flags.SHOW_OBJECT_IDS
+                             Flags.SHOW_LINE_NUMBERS  |
+                             Flags.SHOW_OBJECT_IDS    |
+                             Flags.SHOW_NESTING_DEPTH
                              )
         context._print("Hello from dump_object().")
         # Ugly but probably temporary: Since _better_repr_core() doesn't print the line number of the
