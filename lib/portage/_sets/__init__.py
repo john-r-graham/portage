@@ -9,6 +9,9 @@ __all__ = [
     "load_default_config",
 ]
 
+# JRG debugging:
+import portage.better_repr
+
 import portage
 from portage import os
 from portage import load_mod
@@ -70,6 +73,9 @@ class SetConfig:
         self.settings = settings
         self._parsed = False
         self.active = []
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def _create_default_config(self):
         """

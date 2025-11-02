@@ -1639,6 +1639,9 @@ class vardbapi(dbapi):
 class vartree:
     "this tree will scan a var/db/pkg database located at root (passed to init)"
 
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
+
     def __init__(
         self, root=None, virtual=DeprecationWarning, categories=None, settings=None
     ):

@@ -1,6 +1,9 @@
 # Copyright 2010-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
+# JRG debugging:
+import portage.better_repr
+
 import collections
 import io
 import logging
@@ -166,6 +169,9 @@ class RepoConfig:
         "_eapis_deprecated",
         "_masters_orig",
     )
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(self, name, repo_opts, local_config=True):
         """Build a RepoConfig with options in repo_opts
@@ -643,6 +649,9 @@ class RepoConfig:
 
 class RepoConfigLoader:
     """Loads and store config of several repositories, loaded from PORTDIR_OVERLAY or repos.conf"""
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     @staticmethod
     def _add_repositories(

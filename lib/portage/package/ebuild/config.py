@@ -8,6 +8,9 @@ __all__ = [
     "config",
 ]
 
+# JRG debugging:
+import portage.better_repr
+
 import copy
 from itertools import chain
 import grp
@@ -214,6 +217,9 @@ class config:
     _environ_whitelist = special_env_vars.environ_whitelist
     _environ_whitelist_re = special_env_vars.environ_whitelist_re
     _global_only_vars = special_env_vars.global_only_vars
+
+    def __better_repr__(self, context):
+        context._better_repr_core(self)
 
     def __init__(
         self,
