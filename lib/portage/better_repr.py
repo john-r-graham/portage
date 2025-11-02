@@ -122,7 +122,7 @@ class BetterRepr:
         attrs = {}
 
         if not _is_primitive(object):
-            if obj_id := id(object) in context.object_registry:
+            if (obj_id := id(object)) in context.object_registry:
                 context._print(f"; duplicate (1); see line {context.object_registry[obj_id]}", no_line_number=True)
                 return
             else:
